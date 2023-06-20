@@ -1,9 +1,10 @@
-# JobQuest PH Backend API
+# JobQuest Back-End API (Built with Node.js, Express, TypeScript, Mongoose, MongoDB, JWT and Zod)
 
 This repository contains a Job Backend API developed using Node.js, Express.js, TypeScript, Mongoose, MongoDB, and Zod. It provides a set of routes to manage jobs, user authentication, user profiles, job applications, bookmarks, and employer-specific operations. This README.md file provides an overview of the API and explains how to set it up and use it effectively.
 
 ## Table of Contents
 
+- [Features](#features)
 - [Requirements](#requirements)
 - [Back-End Data Architecture](#back-end-data-architecture)
 - [Getting Started](#getting-started)
@@ -17,6 +18,17 @@ This repository contains a Job Backend API developed using Node.js, Express.js, 
   - [Employer Routes](#employer-routes)
   - [Admin Routes](#admin-routes)
 - [Building the Project](#building-the-project)
+
+## Features
+
+- Allow authenticated users to apply for a job
+- Provide user registration and login functionality
+- Support refreshing access tokens via the refresh token
+- Enable users to update and delete their profiles
+- Grants users to bookmark job posts
+- Allow employers to create, update, and delete job posts
+- Facilitate the review of job applications by employers
+- Provide administrative functionality for managing users and applications
 
 ## Requirements
 
