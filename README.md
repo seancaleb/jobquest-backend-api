@@ -38,7 +38,7 @@ This is the back-end data architecture showcasing the design and structure of da
 1. Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/your-username/jobquest-backend-api.git
+git clone https://github.com/seancaleb/jobquest-backend-api.git
 ```
 
 2. Navigate to the project's directory:
