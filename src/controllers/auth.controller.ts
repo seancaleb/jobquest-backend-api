@@ -1,0 +1,199 @@
+import { Request, Response, NextFunction } from "express";
+import User from "@/models/user.model";
+import jwt from "jsonwebtoken";
+import { LoginBody, RegisterBody } from "@/schema/user.schema";
+import config from "config";
+import {
+  BAD_REQUEST,
+  EMAIL_EXISTS,
+  FORBIDDEN,
+  INVALID_PASSWORD,
+  UNAUTHORIZED,
+  USER_CREATED,
+  USER_NOT_FOUND,
+} from "@/constants";
+
+/**
+ * @desc    Register
+ * @route   POST /api/auth/register
+ * @access  PUBLIC
+ */
+const register = async (
+  req: Request<{}, {}, RegisterBody>,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { email } = req.body;
+
+    // Check if email exists in database
+    const emailExists = await User.find({ email }).lean();
+    if (emailExists.length) {
+      res.status(409);
+      throw new Error(EMAIL_EXISTS);
+    }
+
+    // Create user
+    const user = await User.create({ ...req.body });
+    if (user) {
+      return res.status(201).json({ message: USER_CREATED });
+    } else {
+      res.status(400).json({ message: BAD_REQUEST });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Login
+ * @route   POST /api/auth/login
+ * @access  PUBLIC
+ */
+const login = async (
+  req: Request<{}, {}, LoginBody>,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    // Check if user doesn't exist
+    if (!user) {
+      return res.status(404).json({ message: USER_NOT_FOUND });
+    }
+
+    const isPasswordMatch = await user.comparePassword(password);
+
+    // Check if user password doesn't match password from the database
+    if (!isPasswordMatch) {
+      res.status(401).json({ message: INVALID_PASSWORD });
+    }
+
+    // Create an access token
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        age: user.age,
+        role: user.role,
+      },
+      config.get<string>("accessToken"),
+      {
+        expiresIn: config.get<string>("accessTokenExpiresIn"),
+      }
+    );
+
+    // Create a refresh token
+    const refreshToken = jwt.sign(
+      {
+        email: user.email,
+      },
+      config.get<string>("refreshToken"),
+      { expiresIn: config.get<string>("refreshTokenExpiresIn") }
+    );
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true, // accessible only by the web server
+      secure: true, // https only
+      sameSite: "none", // cross site cookie
+      maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry: set to match refreshToken (7 days)
+    });
+
+    // Send access token containing user information
+    res.json({ accessToken });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Refresh
+ * @route   GET /api/auth/refresh
+ * @access  PUBLIC - because token has expired
+ */
+const refresh = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const cookies = req.cookies;
+
+    // Check if 'jwt' exists in req.cookies
+    if (!cookies["jwt"]) {
+      return res.status(401).json({ message: UNAUTHORIZED });
+    }
+
+    const refreshToken = cookies["jwt"] as string;
+
+    // Verify token
+    jwt.verify(
+      refreshToken,
+      config.get<string>("refreshToken"),
+      async (err: jwt.VerifyErrors | null, decoded) => {
+        if (err) {
+          return res.status(403).json({
+            message: FORBIDDEN,
+          });
+        }
+
+        const { email } = jwt.decode(refreshToken) as { email: string };
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+          return res.status(401).json({ message: USER_NOT_FOUND });
+        }
+
+        // Create a new access token
+        const accessToken = jwt.sign(
+          {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            age: user.age,
+            role: user.role,
+          },
+          config.get<string>("accessToken"),
+          {
+            expiresIn: config.get<string>("accessTokenExpiresIn"),
+          }
+        );
+
+        res.json({ accessToken });
+      }
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Logout
+ * @route   POST /api/auth/logout
+ * @access  PUBLIC - just to clear cookies if exist
+ */
+const logout = (req: Request, res: Response, next: NextFunction) => {
+  const cookies = req.cookies;
+
+  // Check if 'jwt' exists in req.cookies
+  if (!cookies["jwt"]) {
+    return res.status(401).json({ message: UNAUTHORIZED });
+  }
+
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
+
+  res.json({ message: "Cookie cleared" });
+};
+
+export { register, login, refresh, logout };
