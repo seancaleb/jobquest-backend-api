@@ -11,6 +11,8 @@ import authRoute from "@/routes/auth.route";
 import usersRoute from "@/routes/users.route";
 import jobsRoute from "@/routes/jobs.route";
 import adminRoute from "@/routes/admin.route";
+import compression from "compression";
+import helmet from "helmet";
 
 /**
  * Declarations
@@ -30,6 +32,8 @@ app.use(
   })
 );
 app.use(cookieParser());
+app.use(compression());
+app.use(helmet());
 
 /**
  * All Routes
