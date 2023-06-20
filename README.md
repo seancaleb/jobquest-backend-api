@@ -89,8 +89,8 @@ export default {
 ```
 
 - `PORT` represents the port number on which the API server will run.
-- `MONGODB_URI` should be set to your MongoDB connection URI.
-- `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` are used for signing JSON Web Tokens (JWT) for authentication. Generate unique secret keys for each to enhance security.
+- `mongoPath` should be set to your MongoDB connection URI.
+- `accessToken` and `refreshToken` are used for signing JSON Web Tokens (JWT) for authentication. Generate unique secret keys for each to enhance security.
 
 ### Running the API
 
