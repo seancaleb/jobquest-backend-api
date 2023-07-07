@@ -19,6 +19,8 @@ export const INVALID_PASSWORD =
   "Invalid Credentials: The provided password is incorrect. Please verify your password and try again.";
 export const UNAUTHORIZED_JOB_POST =
   "Unauthorized Access: Only the job creator is allowed to request this job listing.";
+export const UNAUTHORIZED_TOKEN_INVALIDATED =
+  "Unauthorized: Your token has been invalidated. Please authenticate again to access this resource.";
 
 /**
  * @status  404 - Not Found
