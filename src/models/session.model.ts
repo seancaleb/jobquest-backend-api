@@ -19,8 +19,7 @@ const sessionSchema = new Schema<SessionDocument>(
     },
     expireAt: {
       type: Date,
-      default: Date.now,
-      expires: 900,
+      default: new Date().getTime() + 1000 * 60 * 15,
     },
   },
   {
