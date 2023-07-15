@@ -89,6 +89,13 @@ const login = async (
       }
     );
 
+    res.cookie("jwt-token", accessToken, {
+      httpOnly: true, // accessible only by the web server
+      secure: true, // https only
+      sameSite: "none", // cross site cookie
+      maxAge: 15 * 60 * 1000, // cookie expiry: set to match accessToken (15 minutes)
+    });
+
     // Create a refresh token
     const refreshToken = jwt.sign(
       {
@@ -98,7 +105,7 @@ const login = async (
       { expiresIn: config.get<string>("refreshTokenExpiresIn") }
     );
 
-    res.cookie("jwt", refreshToken, {
+    res.cookie("jwt-token-refresh", refreshToken, {
       httpOnly: true, // accessible only by the web server
       secure: true, // https only
       sameSite: "none", // cross site cookie
@@ -135,12 +142,12 @@ const refresh = async (
   try {
     const cookies = req.cookies;
 
-    // Check if 'jwt' exists in req.cookies
-    if (!cookies["jwt"]) {
+    // Check if 'jwt-token-refresh' exists in req.cookies
+    if (!cookies["jwt-token-refresh"]) {
       return res.status(401).json({ message: UNAUTHORIZED });
     }
 
-    const refreshToken = cookies["jwt"] as string;
+    const refreshToken = cookies["jwt-token-refresh"] as string;
 
     // Verify token
     jwt.verify(
@@ -177,6 +184,13 @@ const refresh = async (
           }
         );
 
+        res.cookie("jwt-token", accessToken, {
+          httpOnly: true, // accessible only by the web server
+          secure: true, // https only
+          sameSite: "none", // cross site cookie
+          maxAge: 15 * 60 * 1000, // cookie expiry: set to match accessToken (15 minutes)
+        });
+
         res.json({ accessToken });
       }
     );
@@ -195,11 +209,11 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
   const { email } = req.user;
 
   // Check if 'jwt' exists in req.cookies
-  if (!cookies["jwt"]) {
+  if (!cookies["jwt-token-refresh"]) {
     return res.status(401).json({ message: UNAUTHORIZED });
   }
 
-  res.clearCookie("jwt", {
+  res.clearCookie("jwt-token-refresh", {
     httpOnly: true,
     sameSite: "none",
     secure: true,

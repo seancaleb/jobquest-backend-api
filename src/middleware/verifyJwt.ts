@@ -7,21 +7,17 @@ import { FORBIDDEN, UNAUTHORIZED } from "@/constants";
 import { ObjectId } from "mongoose";
 
 const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization || (req.headers.Authorization as string);
+  const cookies = req.cookies;
 
-  if (!authHeader) {
+  // Check if 'jwt-token' exists in req.cookies
+  if (!cookies["jwt-token"]) {
     return res.status(401).json({ message: UNAUTHORIZED });
   }
 
-  if (!authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: UNAUTHORIZED });
-  }
-
-  const token = authHeader.split(" ")[1];
+  const token = cookies["jwt-token"] as string;
 
   jwt.verify(token, config.get<string>("accessToken"), async (err, decoded) => {
     if (err) {
-      console.log("What is the error?");
       return res.status(403).json({ message: FORBIDDEN });
     }
 
