@@ -21,13 +21,12 @@ const ArrayOfDescriptions = (field: string) =>
 const StringDescription = (field: string) =>
   z
     .string({ required_error: `${field} is required` })
-    .min(6, `${field} is too short - minimum of 12 characters`)
-    .max(128, `${field} is too long`);
+    .min(6, `${field} is too short - minimum of 12 characters`);
 
 const payload = {
   body: z.object({
     title: StringDescription("Title"),
-    description: z.union([ArrayOfDescriptions("Description"), StringDescription("Description")]),
+    description: StringDescription("Description"),
     requirements: ArrayOfDescriptions("Requirement"),
     location: z.enum(defaultCities),
   }),

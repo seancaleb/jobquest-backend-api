@@ -29,7 +29,7 @@ const jobSchema = new Schema<JobDocument>(
       required: true,
     },
     description: {
-      type: Schema.Types.Mixed,
+      type: String,
       required: true,
     },
     requirements: {
