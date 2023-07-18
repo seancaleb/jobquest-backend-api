@@ -5,7 +5,7 @@ import { UNAUTHORIZED, UNAUTHORIZED_TOKEN_INVALIDATED } from "@/constants";
 const verifyTokenSession = async (req: Request, res: Response, next: NextFunction) => {
   const { email } = req.user;
 
-  // Check if the token exists in the sessions collection and is not invalidated
+  // Check if the email exists in the sessions collection and is not invalidated
   const session = await Session.findOne({ email });
 
   if (!session || session.invalidated) {
