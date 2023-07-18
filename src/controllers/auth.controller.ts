@@ -113,7 +113,7 @@ const login = async (
     });
 
     // Check if email is present in the session
-    const session = await Session.findOne({ email }).exec();
+    const session = await Session.findOne({ email: user.email }).exec();
 
     if (session) {
       await session.deleteOne();
