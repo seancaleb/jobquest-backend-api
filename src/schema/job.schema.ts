@@ -56,6 +56,7 @@ export const updateJobPostSchema = z.object({ ...payload, ...params });
 export const getAllJobApplicationsSchema = z.object({ ...params });
 export const updateJobApplicationStatusSchema = z.object({ ...updateJobApplicationStatusPayload });
 export const deleteJobApplicationSchema = z.object({ ...params });
+export const getJobSchema = z.object({ ...params });
 
 export type CreateJobPostBody = z.infer<typeof createJobPostSchema>["body"];
 export type UpdateJobPostBody = z.infer<typeof updateJobPostSchema>["body"];
