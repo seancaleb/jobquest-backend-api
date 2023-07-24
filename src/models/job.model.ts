@@ -5,6 +5,7 @@ import { customAlphabet } from "nanoid";
 export interface JobDocument extends JobType, Document {
   applications: (typeof Types.ObjectId)[];
   employerId: typeof Types.ObjectId;
+  employerName: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +24,9 @@ const jobSchema = new Schema<JobDocument>(
       type: Types.ObjectId,
       required: true,
       ref: "User",
+    },
+    employerName: {
+      type: String,
     },
     title: {
       type: String,

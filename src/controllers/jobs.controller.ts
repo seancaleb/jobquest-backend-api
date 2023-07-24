@@ -16,6 +16,7 @@ import {
   UNAUTHORIZED,
   UNAUTHORIZED_JOB_POST,
   UNAUTHORIZED_UPDATE_JOB,
+  USER_NOT_FOUND,
 } from "@/constants";
 import Application from "@/models/application.model";
 import User from "@/models/user.model";
@@ -104,10 +105,23 @@ const createJobPost = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { id } = req.user;
+    const { id, email } = req.user;
+
+    // Get employer details
+    const employer = await User.findOne({ email }).lean();
+
+    if (!employer) {
+      return res.status(404).json({ message: USER_NOT_FOUND });
+    }
+
+    console.log(employer);
 
     // Create a new job post
-    const createdJobPost = await Job.create({ employerId: id, ...req.body });
+    const createdJobPost = await Job.create({
+      employerId: id,
+      employerName: `${employer.firstName} ${employer.lastName[0]}.`,
+      ...req.body,
+    });
 
     if (createdJobPost) {
       return res.status(201).json({ message: JOB_CREATED });
