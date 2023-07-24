@@ -16,9 +16,11 @@ import {
   UNAUTHORIZED,
   UNAUTHORIZED_JOB_POST,
   UNAUTHORIZED_UPDATE_JOB,
+  USER_NOT_FOUND,
 } from "@/constants";
 import Application from "@/models/application.model";
 import User from "@/models/user.model";
+import { SortOrder } from "mongoose";
 
 /**
  * @desc    Get all jobs
@@ -31,14 +33,62 @@ const getJobs = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
+    const { pageNumber, limit, startIndex, lastIndex } = req.pagination;
+    const sortBy = (req.query.sortBy as string) || "createdAt";
+    const sortOrder = (req.query.sortOrder as SortOrder) || "desc";
+    const location = req.query.location as string;
+    const keyword = req.query.keyword as string;
+
+    const query = Job.find();
+
+    if (location) {
+      const parsedLocation = location.split(",");
+      const locationRegexArray = parsedLocation.map((location) => new RegExp(location, "i"));
+      query.where("location").in(locationRegexArray);
+    }
+
+    if (keyword) {
+      query.where("title", { $regex: keyword, $options: "i" });
+    }
+
+    query.sort({ [sortBy]: sortOrder });
+
+    // Apply the pagination
+    query.skip(startIndex).limit(limit);
+
     // Get all jobs
-    const jobs = await Job.find().lean();
+    const jobs = await query.exec();
 
     if (jobs.length) {
-      return res.status(200).json({ total: jobs.length, jobs });
+      return res.status(200).json({ total: jobs.length, jobs, limit, pageNumber });
     } else {
-      res.status(200).json({ total: jobs.length, jobs: [] });
+      res.status(200).json({ total: jobs.length, jobs: [], limit, pageNumber });
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get job
+ * @route   GET /api/jobs/:jobId
+ * @access  PUBLIC
+ */
+const getJob = async (
+  req: Request<JobIdParams>,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { jobId } = req.params;
+    // Get specific job post
+    const job = await Job.findOne({ jobId });
+
+    if (!job) {
+      return res.status(404).json({ message: JOB_NOT_FOUND });
+    }
+
+    res.status(200).json({ job });
   } catch (error) {
     next(error);
   }
@@ -55,10 +105,23 @@ const createJobPost = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { id } = req.user;
+    const { id, email } = req.user;
+
+    // Get employer details
+    const employer = await User.findOne({ email }).lean();
+
+    if (!employer) {
+      return res.status(404).json({ message: USER_NOT_FOUND });
+    }
+
+    console.log(employer);
 
     // Create a new job post
-    const createdJobPost = await Job.create({ employerId: id, ...req.body });
+    const createdJobPost = await Job.create({
+      employerId: id,
+      employerName: `${employer.firstName} ${employer.lastName[0]}.`,
+      ...req.body,
+    });
 
     if (createdJobPost) {
       return res.status(201).json({ message: JOB_CREATED });
@@ -265,6 +328,7 @@ const getAllJobPostings = async (
 
 export {
   getJobs,
+  getJob,
   createJobPost,
   updateJobPost,
   getAllJobApplications,
