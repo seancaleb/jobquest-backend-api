@@ -33,7 +33,7 @@ const getJobs = async (
 ): Promise<Response | void> => {
   try {
     const { pageNumber, limit, startIndex, lastIndex } = req.pagination;
-    const sortBy = (req.query.sortBy as string) || "updatedAt";
+    const sortBy = (req.query.sortBy as string) || "createdAt";
     const sortOrder = (req.query.sortOrder as SortOrder) || "desc";
     const location = req.query.location as string;
     const keyword = req.query.keyword as string;
@@ -42,7 +42,8 @@ const getJobs = async (
 
     if (location) {
       const parsedLocation = location.split(",");
-      query.where("location").in(parsedLocation);
+      const locationRegexArray = parsedLocation.map((location) => new RegExp(location, "i"));
+      query.where("location").in(locationRegexArray);
     }
 
     if (keyword) {
