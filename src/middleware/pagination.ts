@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 
 const pagination = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const pageNumber = parseInt(req.query.offset as string) || 1;
+    const pageNumber = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
     const startIndex = (pageNumber - 1) * limit;
