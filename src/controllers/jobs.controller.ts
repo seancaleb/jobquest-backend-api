@@ -88,7 +88,7 @@ const getJob = async (
       return res.status(404).json({ message: JOB_NOT_FOUND });
     }
 
-    res.status(200).json({ job });
+    res.status(200).json(job);
   } catch (error) {
     next(error);
   }
