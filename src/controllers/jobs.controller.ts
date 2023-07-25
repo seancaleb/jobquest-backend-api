@@ -21,6 +21,7 @@ import {
 import Application from "@/models/application.model";
 import User from "@/models/user.model";
 import { SortOrder } from "mongoose";
+import { subDays } from "date-fns";
 
 /**
  * @desc    Get all jobs
@@ -38,8 +39,14 @@ const getJobs = async (
     const sortOrder = (req.query.sortOrder as SortOrder) || "desc";
     const location = req.query.location as string;
     const keyword = req.query.keyword as string;
+    const filterDate = req.query.fromAge as string;
 
     const query = Job.find();
+
+    if (filterDate) {
+      const fromDate = subDays(Date.now(), parseInt(filterDate));
+      query.where("createdAt", { $gte: fromDate });
+    }
 
     if (location) {
       const parsedLocation = location.split(",");
