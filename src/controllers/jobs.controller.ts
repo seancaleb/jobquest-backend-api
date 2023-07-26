@@ -43,6 +43,7 @@ const getJobs = async (
 
     const query = Job.find();
 
+    // Apply filters
     if (filterDate) {
       const fromDate = subDays(Date.now(), parseInt(filterDate));
       query.where("createdAt", { $gte: fromDate });
@@ -60,16 +61,23 @@ const getJobs = async (
 
     query.sort({ [sortBy]: sortOrder });
 
+    // Run query to get filters
+    const countQuery = Job.find(query.getFilter());
+
+    // Get the total jobs applied by filters
+    const totalJobs = await countQuery.countDocuments();
+    const totalPages = Math.ceil(totalJobs / limit);
+
     // Apply the pagination
     query.skip(startIndex).limit(limit);
 
-    // Get all jobs
+    // Get all jobs in paginated form
     const jobs = await query.exec();
 
     if (jobs.length) {
-      return res.status(200).json({ total: jobs.length, jobs, limit, pageNumber });
+      return res.status(200).json({ total: totalJobs, jobs, limit, pageNumber, totalPages });
     } else {
-      res.status(200).json({ total: jobs.length, jobs: [], limit, pageNumber });
+      res.status(200).json({ total: totalJobs, jobs: [], limit, pageNumber, totalPages });
     }
   } catch (error) {
     next(error);
