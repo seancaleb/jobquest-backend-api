@@ -19,6 +19,7 @@ import { JobIdParams } from "@/schema/job.schema";
 import { AppyJobPostBody, JobApplicationIdParams } from "@/schema/application.schema";
 import Application from "@/models/application.model";
 import { Types } from "mongoose";
+import Session from "@/models/session.model";
 
 /**
  * @desc    Get current user
@@ -93,6 +94,16 @@ const updateUser = async (
     if (!updatedUser) {
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
+
+    // Check if email is present in the session
+    const session = await Session.findOne({ email: user.email }).exec();
+
+    if (session) {
+      await session.deleteOne();
+    }
+
+    // Create a session for the token in the database
+    await Session.create({ email: updatedUser.email });
 
     res.json({ user: updatedUser });
   } catch (error) {
