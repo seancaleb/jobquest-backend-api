@@ -11,6 +11,7 @@ import {
   JOB_APPLICATION_NOT_FOUND,
   JOB_NOT_FOUND,
   JOB_POST_BOOKMARKED,
+  PASSWORD_UPDATED,
   USER_DELETED,
   USER_NOT_FOUND,
 } from "@/constants";
@@ -199,7 +200,7 @@ const updatePassword = async (
 
     // Check if user password doesn't match password from the database
     if (!isPasswordMatch) {
-      res.status(401).json({ message: INVALID_PASSWORD });
+      return res.status(400).json({ message: INVALID_PASSWORD });
     }
 
     await User.findOneAndUpdate(
@@ -215,7 +216,7 @@ const updatePassword = async (
       }
     );
 
-    res.status(200).json({ message: "Password has been successfully updated." });
+    res.status(200).json({ message: PASSWORD_UPDATED });
   } catch (error) {
     next(error);
   }
