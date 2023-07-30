@@ -59,3 +59,4 @@ export const BAD_REQUEST = "Bad Request: The server could not understand your re
 export const JOB_POST_DELETED = "Job Post Deleted: The job post has been successfully deleted.";
 export const JOB_POST_BOOKMARKED = "Job Bookmarked: The job has been successfully bookmarked.";
 export const USER_DELETED = "User Deleted: User has been successfully deleted.";
+export const PASSWORD_UPDATED = "Password Updated: Password has been successfully updated.";
