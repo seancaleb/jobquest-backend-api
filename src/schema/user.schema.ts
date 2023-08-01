@@ -50,8 +50,14 @@ const bookmarkJobPostPayload = {
   }),
 };
 
+const params = {
+  params: z.object({
+    userId: z.string({ required_error: "User ID is required" }),
+  }),
+};
+
 // Base type for User model in mongoose
-export type UserType = z.infer<typeof registerUserPayload.body>;
+export type UserType = z.infer<typeof registerUserPayload.body> & z.infer<typeof params.params>;
 
 export const registerUserSchema = z.object({ ...registerUserPayload });
 export const loginUserSchema = z.object({ ...loginUserPayload });

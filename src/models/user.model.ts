@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Query, Types } from "mongoose";
 import bcrypt from "bcrypt";
 import config from "config";
 import { UserType } from "@/schema/user.schema";
+import generateUniqueId from "@/utils/generateUniqueId";
 
 export interface UserDocument extends UserType, Document {
   bookmark: (typeof Types.ObjectId)[];
@@ -12,6 +13,12 @@ export interface UserDocument extends UserType, Document {
 
 const userSchema = new Schema<UserDocument>(
   {
+    userId: {
+      type: String,
+      required: true,
+      unique: true,
+      default: generateUniqueId("user"),
+    },
     firstName: {
       type: String,
       required: true,
