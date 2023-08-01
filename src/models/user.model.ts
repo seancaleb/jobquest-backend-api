@@ -15,9 +15,7 @@ const userSchema = new Schema<UserDocument>(
   {
     userId: {
       type: String,
-      required: true,
       unique: true,
-      default: generateUniqueId("user"),
     },
     firstName: {
       type: String,
@@ -53,12 +51,16 @@ const userSchema = new Schema<UserDocument>(
 );
 
 userSchema.pre<UserDocument>("save", async function (next) {
-  if (!this.isModified("password")) {
-    return next();
+  if (this.isNew) {
+    this.userId = generateUniqueId(this.role);
   }
 
   if (this.role !== "user") {
     this.set("bookmark", undefined);
+  }
+
+  if (!this.isModified("password")) {
+    return next();
   }
 
   const salt = await bcrypt.genSalt(config.get<number>("saltWorkFactor"));
