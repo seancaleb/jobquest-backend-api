@@ -1,4 +1,5 @@
 import { JobType, defaultCities } from "@/schema/job.schema";
+import generateUniqueId from "@/utils/generateUniqueId";
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { customAlphabet } from "nanoid";
 
@@ -10,15 +11,13 @@ export interface JobDocument extends JobType, Document {
   updatedAt: Date;
 }
 
-const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 10);
-
 const jobSchema = new Schema<JobDocument>(
   {
     jobId: {
       type: String,
       required: true,
       unique: true,
-      default: () => `job_${nanoid()}`,
+      default: generateUniqueId("job"),
     },
     employerId: {
       type: Types.ObjectId,
