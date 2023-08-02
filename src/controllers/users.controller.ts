@@ -430,7 +430,7 @@ const getBookmarkedJobs = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    const bookmarkedJobs = await Job.find({ _id: { $in: user.bookmark } });
+    const bookmarkedJobs = await Job.find({ _id: { $in: user.bookmark } }).sort({ createdAt: -1 });
 
     res.json({ total: bookmarkedJobs.length, bookmarkedJobs });
   } catch (error) {
