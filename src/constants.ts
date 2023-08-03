@@ -37,8 +37,6 @@ export const EMAIL_EXISTS =
   "Email Already Exists: The provided email is already associated with an existing account.";
 export const JOB_ALREADY_APPLIED =
   "Job Already Applied: You have already submitted an application for this job.";
-export const JOB_ALREADY_BOOKMARKED =
-  "Job Already Bookmarked: You have already bookmarked this job post.";
 
 /**
  * @status  201 - CREATED
@@ -60,3 +58,9 @@ export const JOB_POST_DELETED = "Job Post Deleted: The job post has been success
 export const JOB_POST_BOOKMARKED = "Job Bookmarked: The job has been successfully bookmarked.";
 export const USER_DELETED = "User Deleted: User has been successfully deleted.";
 export const PASSWORD_UPDATED = "Password Updated: Password has been successfully updated.";
+export const JOB_UNBOOKMARKED =
+  "Job Unbookmarked: The job post has been removed from your bookmarks.";
+
+/**
+ * @status  204 - No Content
+ */
