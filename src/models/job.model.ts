@@ -17,7 +17,7 @@ const jobSchema = new Schema<JobDocument>(
       type: String,
       required: true,
       unique: true,
-      default: generateUniqueId("job"),
+      default: () => generateUniqueId("job"),
     },
     employerId: {
       type: Types.ObjectId,
