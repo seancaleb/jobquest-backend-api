@@ -82,6 +82,7 @@ const login = async (
         email: user.email,
         age: user.age,
         role: user.role,
+        userId: user.userId,
       },
       config.get<string>("accessToken"),
       {
@@ -177,6 +178,7 @@ const refresh = async (
             email: user.email,
             age: user.age,
             role: user.role,
+            userId: user.userId,
           },
           config.get<string>("accessToken"),
           {

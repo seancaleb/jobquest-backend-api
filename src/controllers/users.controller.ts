@@ -7,10 +7,10 @@ import {
   EMAIL_EXISTS,
   INVALID_PASSWORD,
   JOB_ALREADY_APPLIED,
-  JOB_ALREADY_BOOKMARKED,
   JOB_APPLICATION_NOT_FOUND,
   JOB_NOT_FOUND,
   JOB_POST_BOOKMARKED,
+  JOB_UNBOOKMARKED,
   PASSWORD_UPDATED,
   USER_DELETED,
   USER_NOT_FOUND,
@@ -375,10 +375,10 @@ const bookmarkJobPost = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { email } = req.user;
+    const { email, id } = req.user;
     const { jobId } = req.params;
 
-    const user = await User.findOne({ email }).exec();
+    const user = await User.findOne({ email }).lean();
 
     // Check if user doesn't exist in the database
     if (!user) {
@@ -393,17 +393,22 @@ const bookmarkJobPost = async (
     }
 
     // Check if job post is already bookmarked
-    const isCurrentlyBookmarked = user.bookmark.find(
-      (jobId) => jobId.toString() === jobPost._id.toString()
-    );
+    const isCurrentlyBookmarked = user.bookmark.find((jobId) => jobId === jobPost.jobId);
 
+    // Check if _id is currently bookmarked
     if (isCurrentlyBookmarked) {
-      return res.status(409).json({ message: JOB_ALREADY_BOOKMARKED });
+      await User.updateOne(
+        {
+          _id: id,
+          bookmark: { $in: isCurrentlyBookmarked },
+        },
+        { $pull: { bookmark: { $in: isCurrentlyBookmarked } } }
+      );
+
+      return res.status(200).json({ message: JOB_UNBOOKMARKED });
     }
 
-    user.bookmark.push(jobPost._id);
-    await user.save();
-
+    await User.updateOne({ _id: id }, { $push: { bookmark: jobPost.jobId } });
     res.status(200).json({ message: JOB_POST_BOOKMARKED });
   } catch (error) {
     next(error);
@@ -430,7 +435,9 @@ const getBookmarkedJobs = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    const bookmarkedJobs = await Job.find({ _id: { $in: user.bookmark } });
+    const bookmarkedJobs = await Job.find({ jobId: { $in: user.bookmark } }).sort({
+      createdAt: -1,
+    });
 
     res.json({ total: bookmarkedJobs.length, bookmarkedJobs });
   } catch (error) {

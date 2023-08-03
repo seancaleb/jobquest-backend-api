@@ -2,9 +2,10 @@ import mongoose, { Schema, Document, Query, Types } from "mongoose";
 import bcrypt from "bcrypt";
 import config from "config";
 import { UserType } from "@/schema/user.schema";
+import generateUniqueId from "@/utils/generateUniqueId";
 
 export interface UserDocument extends UserType, Document {
-  bookmark: (typeof Types.ObjectId)[];
+  bookmark: string[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<Error | boolean>;
@@ -12,6 +13,10 @@ export interface UserDocument extends UserType, Document {
 
 const userSchema = new Schema<UserDocument>(
   {
+    userId: {
+      type: String,
+      unique: true,
+    },
     firstName: {
       type: String,
       required: true,
@@ -38,7 +43,7 @@ const userSchema = new Schema<UserDocument>(
       enum: ["user", "employer", "admin"],
       default: "user",
     },
-    bookmark: [{ type: Types.ObjectId, ref: "Job" }],
+    bookmark: [{ type: String, ref: "Job" }],
   },
   {
     timestamps: true,
@@ -46,12 +51,16 @@ const userSchema = new Schema<UserDocument>(
 );
 
 userSchema.pre<UserDocument>("save", async function (next) {
-  if (!this.isModified("password")) {
-    return next();
+  if (this.isNew) {
+    this.userId = generateUniqueId(this.role);
   }
 
   if (this.role !== "user") {
     this.set("bookmark", undefined);
+  }
+
+  if (!this.isModified("password")) {
+    return next();
   }
 
   const salt = await bcrypt.genSalt(config.get<number>("saltWorkFactor"));
