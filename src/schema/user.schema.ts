@@ -50,6 +50,12 @@ const bookmarkJobPostPayload = {
   }),
 };
 
+const deleteUserPayload = {
+  body: z.object({
+    password: z.string({ required_error: "Password is required" }),
+  }),
+};
+
 const params = {
   params: z.object({
     userId: z.string({ required_error: "User ID is required" }),
@@ -64,8 +70,10 @@ export const loginUserSchema = z.object({ ...loginUserPayload });
 export const updateUserSchema = z.object({ ...updateUserPayload });
 export const updatePasswordSchema = z.object({ ...updatePasswordPayload });
 export const bookmarkJobPostSchema = z.object({ ...bookmarkJobPostPayload });
+export const deleteUserSchema = z.object({ ...deleteUserPayload });
 
 export type RegisterBody = z.infer<typeof registerUserSchema>["body"];
 export type LoginBody = z.infer<typeof loginUserSchema>["body"];
 export type UpdateUserBody = z.infer<typeof updateUserSchema>["body"];
 export type UpdatePasswordBody = z.infer<typeof updatePasswordSchema>["body"];
+export type DeleteUserBody = z.infer<typeof deleteUserSchema>["body"];

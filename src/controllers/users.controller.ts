@@ -15,11 +15,10 @@ import {
   USER_DELETED,
   USER_NOT_FOUND,
 } from "@/constants";
-import { UpdatePasswordBody, UpdateUserBody } from "@/schema/user.schema";
+import { DeleteUserBody, UpdatePasswordBody, UpdateUserBody } from "@/schema/user.schema";
 import { JobIdParams } from "@/schema/job.schema";
 import { AppyJobPostBody, JobApplicationIdParams } from "@/schema/application.schema";
 import Application from "@/models/application.model";
-import { Types } from "mongoose";
 import Session from "@/models/session.model";
 
 /**
@@ -118,18 +117,26 @@ const updateUser = async (
  * @access  PRIVATE
  */
 const deleteUser = async (
-  req: Request,
+  req: Request<{}, {}, DeleteUserBody>,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
     const { id } = req.user;
+    const { password } = req.body;
 
     const user = await User.findById(id).exec();
 
     // Check if user doesn't exist in the database
     if (!user) {
       return res.status(404).json({ message: USER_NOT_FOUND });
+    }
+
+    const isPasswordMatch = await user.comparePassword(password);
+
+    // Check if user password doesn't match password from the database
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: INVALID_PASSWORD });
     }
 
     if (user.role === "user") {
@@ -169,7 +176,7 @@ const deleteUser = async (
       secure: true,
     });
 
-    res.status(200).json({ message: USER_DELETED });
+    return res.status(204).end();
   } catch (error) {
     next(error);
   }

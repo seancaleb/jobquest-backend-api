@@ -16,6 +16,7 @@ import verifyTokenSession from "@/middleware/verifyTokenSession";
 import { applyJobPostSchema, deleteJobApplicationSchema } from "@/schema/application.schema";
 import {
   bookmarkJobPostSchema,
+  deleteUserSchema,
   updatePasswordSchema,
   updateUserSchema,
 } from "@/schema/user.schema";
@@ -27,7 +28,7 @@ router.use(verifyJwt, verifyTokenSession);
 
 router.get("/profile", getUser);
 router.patch("/profile", validateResource(updateUserSchema), updateUser);
-router.delete("/profile", deleteUser);
+router.delete("/profile", validateResource(deleteUserSchema), deleteUser);
 router.patch("/update-password", validateResource(updatePasswordSchema), updatePassword);
 
 router.use(authorizeUser("user"));
