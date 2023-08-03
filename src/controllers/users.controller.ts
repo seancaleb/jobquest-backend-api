@@ -106,7 +106,7 @@ const updateUser = async (
     // Create a session for the token in the database
     await Session.create({ email: updatedUser.email });
 
-    res.json({ user: updatedUser });
+    res.json(updatedUser);
   } catch (error) {
     next(error);
   }
