@@ -5,7 +5,7 @@ import { UserType } from "@/schema/user.schema";
 import generateUniqueId from "@/utils/generateUniqueId";
 
 export interface UserDocument extends UserType, Document {
-  bookmark: (typeof Types.ObjectId)[];
+  bookmark: string[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<Error | boolean>;
@@ -43,7 +43,7 @@ const userSchema = new Schema<UserDocument>(
       enum: ["user", "employer", "admin"],
       default: "user",
     },
-    bookmark: [{ type: Types.ObjectId, ref: "Job" }],
+    bookmark: [{ type: String, ref: "Job" }],
   },
   {
     timestamps: true,
