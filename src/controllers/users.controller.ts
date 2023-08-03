@@ -41,7 +41,7 @@ const getUser = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    res.json({ user });
+    res.json(user);
   } catch (error) {
     next(error);
   }
