@@ -1,4 +1,4 @@
-import Job from "@/models/job.model";
+import Job, { JobDocument } from "@/models/job.model";
 import { Request, Response, NextFunction } from "express";
 import User from "@/models/user.model";
 import {
@@ -20,6 +20,8 @@ import { JobIdParams } from "@/schema/job.schema";
 import { AppyJobPostBody, JobApplicationIdParams } from "@/schema/application.schema";
 import Application from "@/models/application.model";
 import Session from "@/models/session.model";
+import { FlattenMaps } from "mongoose";
+import { Types } from "mongoose";
 
 /**
  * @desc    Get current user
@@ -442,11 +444,25 @@ const getBookmarkedJobs = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    const bookmarkedJobs = await Job.find({ jobId: { $in: user.bookmark } }).sort({
-      createdAt: -1,
+    const bookmarkedJobs = await Job.find({ jobId: { $in: user.bookmark } }).lean();
+
+    // Create a map of jobId to the corresponding job document
+    const jobMap: Record<
+      string,
+      FlattenMaps<JobDocument> & {
+        _id: Types.ObjectId;
+      }
+    > = {};
+    bookmarkedJobs.forEach((job) => {
+      jobMap[job.jobId] = job;
     });
 
-    res.json({ total: bookmarkedJobs.length, bookmarkedJobs });
+    // Sort the results based on the order of user.bookmark
+    const bookmarkedJobsSorted = user.bookmark
+      .map((bookmarkId) => jobMap[bookmarkId])
+      .filter((job) => !!job);
+
+    res.json({ total: bookmarkedJobs.length, bookmarkedJobs: bookmarkedJobsSorted });
   } catch (error) {
     next(error);
   }
