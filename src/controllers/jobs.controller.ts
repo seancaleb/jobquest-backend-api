@@ -304,7 +304,10 @@ const deleteJobPost = async (
     const { deletedCount } = await Application.deleteMany({ jobId: jobPostId });
 
     // Update the bookmark field by deleting the bookmark id from each user
-    await User.updateMany({ bookmark: { $in: jobId } }, { $pull: { bookmark: { $in: jobId } } });
+    await User.updateMany(
+      { bookmark: { $in: jobId }, applications: { $in: jobId } },
+      { $pull: { bookmark: { $in: jobId }, applications: { $in: jobId } } }
+    );
 
     res.status(200).json({
       deletedJobApplications: deletedCount,

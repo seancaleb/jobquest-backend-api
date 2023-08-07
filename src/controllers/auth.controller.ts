@@ -70,7 +70,7 @@ const login = async (
 
     // Check if user password doesn't match password from the database
     if (!isPasswordMatch) {
-      res.status(401).json({ message: INVALID_PASSWORD });
+      return res.status(401).json({ message: INVALID_PASSWORD });
     }
 
     // Create an access token

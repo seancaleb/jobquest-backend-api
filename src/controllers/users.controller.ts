@@ -1,4 +1,4 @@
-import Job from "@/models/job.model";
+import Job, { JobDocument } from "@/models/job.model";
 import { Request, Response, NextFunction } from "express";
 import User from "@/models/user.model";
 import {
@@ -15,12 +15,13 @@ import {
   USER_DELETED,
   USER_NOT_FOUND,
 } from "@/constants";
-import { UpdatePasswordBody, UpdateUserBody } from "@/schema/user.schema";
+import { DeleteUserBody, UpdatePasswordBody, UpdateUserBody } from "@/schema/user.schema";
 import { JobIdParams } from "@/schema/job.schema";
 import { AppyJobPostBody, JobApplicationIdParams } from "@/schema/application.schema";
-import Application from "@/models/application.model";
-import { Types } from "mongoose";
+import Application, { ApplicationDocument } from "@/models/application.model";
 import Session from "@/models/session.model";
+import { FlattenMaps } from "mongoose";
+import { Types } from "mongoose";
 
 /**
  * @desc    Get current user
@@ -41,7 +42,7 @@ const getUser = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    res.json({ user });
+    res.json(user);
   } catch (error) {
     next(error);
   }
@@ -106,7 +107,7 @@ const updateUser = async (
     // Create a session for the token in the database
     await Session.create({ email: updatedUser.email });
 
-    res.json({ user: updatedUser });
+    res.json(updatedUser);
   } catch (error) {
     next(error);
   }
@@ -118,18 +119,26 @@ const updateUser = async (
  * @access  PRIVATE
  */
 const deleteUser = async (
-  req: Request,
+  req: Request<{}, {}, DeleteUserBody>,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
     const { id } = req.user;
+    const { password } = req.body;
 
     const user = await User.findById(id).exec();
 
     // Check if user doesn't exist in the database
     if (!user) {
       return res.status(404).json({ message: USER_NOT_FOUND });
+    }
+
+    const isPasswordMatch = await user.comparePassword(password);
+
+    // Check if user password doesn't match password from the database
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: INVALID_PASSWORD });
     }
 
     if (user.role === "user") {
@@ -162,6 +171,13 @@ const deleteUser = async (
     // Delete user
     await user.deleteOne();
 
+    // Find and delete user session in database
+    const userSession = await Session.findOne({ email: user.email }).exec();
+
+    if (userSession) {
+      await userSession.deleteOne();
+    }
+
     // Clear cookies
     res.clearCookie("jwt", {
       httpOnly: true,
@@ -169,7 +185,7 @@ const deleteUser = async (
       secure: true,
     });
 
-    res.status(200).json({ message: USER_DELETED });
+    return res.status(204).end();
   } catch (error) {
     next(error);
   }
@@ -272,6 +288,9 @@ const applyJobPost = async (
       jobPost.applications.push(appliedJob.applicantId);
       await jobPost.save();
 
+      user.applications.push(appliedJob.jobId);
+      await user.save();
+
       return res.status(201).json({ message: APPLICATION_CREATED });
     } else {
       res.status(400).json({ message: BAD_REQUEST });
@@ -301,10 +320,30 @@ const getAllJobApplications = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    const jobApplications = await Application.find({ applicantId: user._id }).lean();
+    const userApplications = await Application.find({ applicantId: user._id })
+      .sort({ createdAt: -1 })
+      .lean();
+    const jobApplicationIds = userApplications.map((application) => application.jobId);
+    const jobApplications = await Job.find({ jobId: { $in: jobApplicationIds } }).lean();
+
+    const jobMap: Record<
+      string,
+      FlattenMaps<JobDocument> & {
+        _id: Types.ObjectId;
+      }
+    > = {};
+    jobApplications.forEach((job) => {
+      jobMap[job.jobId] = job;
+    });
+
+    const modifiedJobApplications = userApplications
+      .map((application) => ({ ...application, job: jobMap[application.jobId] }))
+      .filter((job) => !!job);
 
     if (jobApplications.length) {
-      return res.status(200).json({ total: jobApplications.length, jobApplications });
+      return res
+        .status(200)
+        .json({ total: modifiedJobApplications.length, jobApplications: modifiedJobApplications });
     } else {
       res.status(200).json({ total: jobApplications.length, jobApplications: [] });
     }
@@ -435,11 +474,26 @@ const getBookmarkedJobs = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    const bookmarkedJobs = await Job.find({ jobId: { $in: user.bookmark } }).sort({
-      createdAt: -1,
+    const bookmarkedJobs = await Job.find({ jobId: { $in: user.bookmark } }).lean();
+
+    // Create a map of jobId to the corresponding job document
+    const jobMap: Record<
+      string,
+      FlattenMaps<JobDocument> & {
+        _id: Types.ObjectId;
+      }
+    > = {};
+    bookmarkedJobs.forEach((job) => {
+      jobMap[job.jobId] = job;
     });
 
-    res.json({ total: bookmarkedJobs.length, bookmarkedJobs });
+    // Sort the results based on the order of user.bookmark
+    const bookmarkedJobsSorted = user.bookmark
+      .map((bookmarkId) => jobMap[bookmarkId])
+      .filter((job) => !!job)
+      .reverse();
+
+    res.json({ total: bookmarkedJobs.length, bookmarkedJobs: bookmarkedJobsSorted });
   } catch (error) {
     next(error);
   }

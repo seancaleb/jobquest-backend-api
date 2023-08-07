@@ -1,6 +1,7 @@
 import { ApplicationType } from "@/schema/application.schema";
 import mongoose, { Schema, Document, Types } from "mongoose";
-import { customAlphabet } from "nanoid";
+import { JobDocument } from "./job.model";
+import generateUniqueId from "@/utils/generateUniqueId";
 
 export interface ApplicationDocument extends ApplicationType, Document {
   jobId: string;
@@ -11,15 +12,13 @@ export interface ApplicationDocument extends ApplicationType, Document {
   updatedAt: Date;
 }
 
-const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 10);
-
 const applicationSchema = new Schema<ApplicationDocument>(
   {
     applicationId: {
       type: String,
       required: true,
       unique: true,
-      default: () => `application_${nanoid()}`,
+      default: () => generateUniqueId("application"),
     },
     jobId: {
       type: String,
