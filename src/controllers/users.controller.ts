@@ -18,7 +18,7 @@ import {
 import { DeleteUserBody, UpdatePasswordBody, UpdateUserBody } from "@/schema/user.schema";
 import { JobIdParams } from "@/schema/job.schema";
 import { AppyJobPostBody, JobApplicationIdParams } from "@/schema/application.schema";
-import Application from "@/models/application.model";
+import Application, { ApplicationDocument } from "@/models/application.model";
 import Session from "@/models/session.model";
 import { FlattenMaps } from "mongoose";
 import { Types } from "mongoose";
@@ -171,6 +171,13 @@ const deleteUser = async (
     // Delete user
     await user.deleteOne();
 
+    // Find and delete user session in database
+    const userSession = await Session.findOne({ email: user.email }).exec();
+
+    if (userSession) {
+      await userSession.deleteOne();
+    }
+
     // Clear cookies
     res.clearCookie("jwt", {
       httpOnly: true,
@@ -281,6 +288,9 @@ const applyJobPost = async (
       jobPost.applications.push(appliedJob.applicantId);
       await jobPost.save();
 
+      user.applications.push(appliedJob.jobId);
+      await user.save();
+
       return res.status(201).json({ message: APPLICATION_CREATED });
     } else {
       res.status(400).json({ message: BAD_REQUEST });
@@ -310,10 +320,30 @@ const getAllJobApplications = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    const jobApplications = await Application.find({ applicantId: user._id }).lean();
+    const userApplications = await Application.find({ applicantId: user._id })
+      .sort({ createdAt: -1 })
+      .lean();
+    const jobApplicationIds = userApplications.map((application) => application.jobId);
+    const jobApplications = await Job.find({ jobId: { $in: jobApplicationIds } }).lean();
+
+    const jobMap: Record<
+      string,
+      FlattenMaps<JobDocument> & {
+        _id: Types.ObjectId;
+      }
+    > = {};
+    jobApplications.forEach((job) => {
+      jobMap[job.jobId] = job;
+    });
+
+    const modifiedJobApplications = userApplications
+      .map((application) => ({ ...application, job: jobMap[application.jobId] }))
+      .filter((job) => !!job);
 
     if (jobApplications.length) {
-      return res.status(200).json({ total: jobApplications.length, jobApplications });
+      return res
+        .status(200)
+        .json({ total: modifiedJobApplications.length, jobApplications: modifiedJobApplications });
     } else {
       res.status(200).json({ total: jobApplications.length, jobApplications: [] });
     }
@@ -460,7 +490,8 @@ const getBookmarkedJobs = async (
     // Sort the results based on the order of user.bookmark
     const bookmarkedJobsSorted = user.bookmark
       .map((bookmarkId) => jobMap[bookmarkId])
-      .filter((job) => !!job);
+      .filter((job) => !!job)
+      .reverse();
 
     res.json({ total: bookmarkedJobs.length, bookmarkedJobs: bookmarkedJobsSorted });
   } catch (error) {
