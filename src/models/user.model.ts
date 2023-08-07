@@ -6,6 +6,7 @@ import generateUniqueId from "@/utils/generateUniqueId";
 
 export interface UserDocument extends UserType, Document {
   bookmark: string[];
+  applications: string[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<Error | boolean>;
@@ -44,6 +45,7 @@ const userSchema = new Schema<UserDocument>(
       default: "user",
     },
     bookmark: [{ type: String, ref: "Job" }],
+    applications: [{ type: String, ref: "Job" }],
   },
   {
     timestamps: true,
@@ -57,6 +59,7 @@ userSchema.pre<UserDocument>("save", async function (next) {
 
   if (this.role !== "user") {
     this.set("bookmark", undefined);
+    this.set("applications", undefined);
   }
 
   if (!this.isModified("password")) {
