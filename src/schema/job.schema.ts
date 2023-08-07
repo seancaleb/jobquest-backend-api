@@ -14,7 +14,7 @@ const ArrayOfDescriptions = (field: string) =>
       z
         .string({ required_error: `${field} is required` })
         .min(6, `${field} is too short - minimum of 6 characters`)
-        .max(128, `${field} is too long`)
+        .max(256, `${field} is too long`)
     )
     .nonempty(`Should contain at least one ${field.toLowerCase()}`);
 
