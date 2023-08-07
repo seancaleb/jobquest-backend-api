@@ -44,7 +44,7 @@ export const JOB_ALREADY_APPLIED =
 export const USER_CREATED = "User Created: The user has been successfully created.";
 export const JOB_CREATED = "Job Created: The job has been successfully created.";
 export const APPLICATION_CREATED =
-  "Application Created: The job application has been successfully created.";
+  "Application Submitted: The job application has been successfully submitted.";
 
 /**
  * @status  400 - Bad Request
