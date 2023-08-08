@@ -1,13 +1,12 @@
 import { ApplicationType } from "@/schema/application.schema";
 import mongoose, { Schema, Document, Types } from "mongoose";
-import { JobDocument } from "./job.model";
 import generateUniqueId from "@/utils/generateUniqueId";
 
 export interface ApplicationDocument extends ApplicationType, Document {
   jobId: string;
   applicantId: typeof Types.ObjectId;
   applicationId: string;
-  status: "submitted" | "accepted" | "rejected" | "under review";
+  status: "Applied" | "Application viewed" | "not selected by employer";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,8 +39,8 @@ const applicationSchema = new Schema<ApplicationDocument>(
     },
     status: {
       type: String,
-      enum: ["submitted", "accepted", "rejected", "under review"],
-      default: "submitted",
+      enum: ["Applied", "Application viewed", "Not selected by employer"],
+      default: "Applied",
     },
   },
   {

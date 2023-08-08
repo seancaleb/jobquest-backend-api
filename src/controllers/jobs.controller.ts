@@ -219,10 +219,46 @@ const getAllJobApplications = async (
     }
 
     const { applications } = jobPost;
-    const jobApplications = await Application.find({
-      applicantId: { $in: applications },
-      jobId,
-    }).lean();
+
+    // Get all applications for a job post and include user information
+    const jobApplications = await Application.aggregate([
+      {
+        $match: {
+          applicantId: { $in: applications },
+          jobId,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "applicantId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $addFields: {
+          user: {
+            $first: {
+              $map: {
+                input: "$user",
+                as: "userData",
+                in: {
+                  firstName: "$$userData.firstName",
+                  lastName: "$$userData.lastName",
+                  userId: "$$userData.userId",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+    ]);
 
     res.status(200).json({ total: jobApplications.length, jobApplications });
   } catch (error) {
