@@ -6,7 +6,7 @@ export interface ApplicationDocument extends ApplicationType, Document {
   jobId: string;
   applicantId: typeof Types.ObjectId;
   applicationId: string;
-  status: "applied" | "application viewed" | "not selected by employer";
+  status: "Applied" | "Application viewed" | "not selected by employer";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,8 +39,8 @@ const applicationSchema = new Schema<ApplicationDocument>(
     },
     status: {
       type: String,
-      enum: ["applied", "application viewed", "Not selected by employer"],
-      default: "applied",
+      enum: ["Applied", "Application viewed", "Not selected by employer"],
+      default: "Applied",
     },
   },
   {

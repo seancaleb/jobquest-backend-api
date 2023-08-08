@@ -40,7 +40,7 @@ const params = {
 
 const updateJobApplicationStatusPayload = {
   body: z.object({
-    status: z.enum(["applied", "application viewed", "Not selected by employer"]),
+    status: z.enum(["Applied", "Application viewed", "Not selected by employer"]),
   }),
   params: z.object({
     jobId: z.string({ required_error: "Job ID is required" }),
