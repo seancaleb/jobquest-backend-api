@@ -48,6 +48,6 @@ router.delete(
   validateResource(deleteJobApplicationSchema),
   deleteJobPost
 );
-router.get("/employers/jobs", getAllJobPostings);
+router.get("/employers/jobs", pagination, getAllJobPostings);
 
 export default router;

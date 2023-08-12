@@ -10,9 +10,11 @@ import {
 import {
   BAD_REQUEST,
   JOB_APPLICATION_NOT_FOUND,
+  JOB_APPLICATION_STATUS_UPDATED,
   JOB_CREATED,
   JOB_NOT_FOUND,
   JOB_POST_DELETED,
+  JOB_POST_UPDATED,
   UNAUTHORIZED,
   UNAUTHORIZED_JOB_POST,
   UNAUTHORIZED_UPDATE_JOB,
@@ -186,7 +188,7 @@ const updateJobPost = async (
       return res.status(404).json({ message: JOB_NOT_FOUND });
     }
 
-    res.json({ job: updateJobPost });
+    res.json({ message: JOB_POST_UPDATED, job: updateJobPost });
   } catch (error) {
     next(error);
   }
@@ -255,7 +257,7 @@ const getAllJobApplications = async (
       },
       {
         $sort: {
-          createdAt: -1,
+          updatedAt: -1,
         },
       },
     ]);
@@ -303,7 +305,7 @@ const updateJobApplicationStatus = async (
       return res.status(404).json({ message: JOB_APPLICATION_NOT_FOUND });
     }
 
-    res.status(200).json({ updatedApplication });
+    res.status(200).json({ updatedApplication, message: JOB_APPLICATION_STATUS_UPDATED });
   } catch (error) {
     next(error);
   }
@@ -366,14 +368,27 @@ const getAllJobPostings = async (
 ): Promise<Response | void> => {
   try {
     const { id } = req.user;
+    const { pageNumber, limit, startIndex, lastIndex } = req.pagination;
 
     // Get all job postings
-    const jobs = await Job.find({ employerId: id }).lean();
+    const query = Job.find({ employerId: id });
+    const totalCountQuery = Job.find({ employerId: id });
+
+    query.sort({ updatedAt: -1 });
+
+    const totalJobs = await totalCountQuery.countDocuments();
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    // Apply the pagination
+    query.skip(startIndex).limit(limit);
+
+    // Get all jobs in paginated form
+    const jobs = await query.exec();
 
     if (jobs.length) {
-      return res.status(200).json({ total: jobs.length, jobs });
+      return res.status(200).json({ total: totalJobs, jobs, limit, pageNumber, totalPages });
     } else {
-      res.status(200).json({ total: jobs.length, jobs: [] });
+      res.status(200).json({ total: totalJobs, jobs: [], limit, pageNumber, totalPages });
     }
   } catch (error) {
     next(error);
