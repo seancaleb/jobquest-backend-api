@@ -52,7 +52,7 @@ export const APPLICATION_CREATED =
 export const BAD_REQUEST = "Bad Request: The server could not understand your request.";
 
 /**
- * @status  200 - SUCCESSS
+ * @status  200 - SUCCESS
  */
 export const JOB_POST_DELETED = "Job Post Deleted: The job post has been successfully deleted.";
 export const JOB_POST_BOOKMARKED = "Job Bookmarked: The job has been successfully bookmarked.";
@@ -60,6 +60,9 @@ export const USER_DELETED = "User Deleted: User has been successfully deleted.";
 export const PASSWORD_UPDATED = "Password Updated: Password has been successfully updated.";
 export const JOB_UNBOOKMARKED =
   "Job Unbookmarked: The job post has been removed from your bookmarks.";
+export const JOB_POST_UPDATED = "Job Post Updated: The job post has been successfully updated.";
+export const JOB_APPLICATION_STATUS_UPDATED =
+  "Application Status Updated: The application status has been successfully updated.";
 
 /**
  * @status  204 - No Content
