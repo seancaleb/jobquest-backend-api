@@ -210,6 +210,12 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
   const cookies = req.cookies;
   const { email } = req.user;
 
+  res.clearCookie("jwt-token", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
+
   // Check if 'jwt' exists in req.cookies
   if (!cookies["jwt-token-refresh"]) {
     return res.status(401).json({ message: UNAUTHORIZED });
