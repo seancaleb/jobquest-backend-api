@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import config from "config";
 import { UserType } from "@/schema/user.schema";
-import { FORBIDDEN, UNAUTHORIZED } from "@/constants";
+import { FORBIDDEN, UNAUTHORIZED, USER_NOT_FOUND } from "@/constants";
 import { ObjectId } from "mongoose";
 
 const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
@@ -26,7 +26,7 @@ const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
     // Check if user exists in database
     const user = await User.findById(id).lean();
     if (!user) {
-      return res.status(401).json({ message: UNAUTHORIZED });
+      return res.status(401).json({ message: USER_NOT_FOUND });
     }
 
     req.user = { id, email: user.email, role: user.role };
