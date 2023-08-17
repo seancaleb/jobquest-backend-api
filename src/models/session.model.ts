@@ -20,6 +20,7 @@ const sessionSchema = new Schema<SessionDocument>(
     },
     expireAt: {
       type: Date,
+      default: Date.now,
       expires: config.get<string>("accessTokenExpiresIn"),
     },
   },
