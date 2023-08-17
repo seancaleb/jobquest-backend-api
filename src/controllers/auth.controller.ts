@@ -186,6 +186,16 @@ const refresh = async (
           }
         );
 
+        // Check if email is present in the session
+        const session = await Session.findOne({ email: user.email }).exec();
+
+        if (session) {
+          await session.deleteOne();
+        }
+
+        // Create a session for the token in the database
+        await Session.create({ email: user.email });
+
         res.cookie("jwt-token", accessToken, {
           httpOnly: true, // accessible only by the web server
           secure: true, // https only
