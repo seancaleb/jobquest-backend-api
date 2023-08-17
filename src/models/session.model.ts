@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document, Query, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
+import config from "config";
 
 export interface SessionDocument extends Document {
   email: string;
@@ -19,8 +20,7 @@ const sessionSchema = new Schema<SessionDocument>(
     },
     expireAt: {
       type: Date,
-      expires: "15m",
-      default: Date.now,
+      expires: config.get<string>("accessTokenExpiresIn"),
     },
   },
   {

@@ -131,8 +131,6 @@ const createJobPost = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    console.log(employer);
-
     // Create a new job post
     const createdJobPost = await Job.create({
       employerId: id,

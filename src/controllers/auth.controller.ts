@@ -186,6 +186,16 @@ const refresh = async (
           }
         );
 
+        // Check if email is present in the session
+        const session = await Session.findOne({ email: user.email }).exec();
+
+        if (session) {
+          await session.deleteOne();
+        }
+
+        // Create a session for the token in the database
+        await Session.create({ email: user.email });
+
         res.cookie("jwt-token", accessToken, {
           httpOnly: true, // accessible only by the web server
           secure: true, // https only
@@ -209,6 +219,12 @@ const refresh = async (
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   const cookies = req.cookies;
   const { email } = req.user;
+
+  res.clearCookie("jwt-token", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
 
   // Check if 'jwt' exists in req.cookies
   if (!cookies["jwt-token-refresh"]) {
