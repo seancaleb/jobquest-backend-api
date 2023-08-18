@@ -12,7 +12,6 @@ import authorizeUser from "@/middleware/authorizeUser";
 import pagination from "@/middleware/pagination";
 import validateResource from "@/middleware/validateResource";
 import verifyJwt from "@/middleware/verifyJwt";
-import verifyTokenSession from "@/middleware/verifyTokenSession";
 import {
   createJobPostSchema,
   deleteJobApplicationSchema,
@@ -28,7 +27,7 @@ const router = express.Router();
 router.get("/jobs", pagination, getJobs);
 router.get("/job/:jobId", validateResource(getJobSchema), getJob);
 
-router.use(verifyJwt, verifyTokenSession);
+router.use(verifyJwt);
 router.use(authorizeUser("employer"));
 
 router.post("/employers/jobs", validateResource(createJobPostSchema), createJobPost);

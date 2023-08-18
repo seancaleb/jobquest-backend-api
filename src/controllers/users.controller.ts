@@ -19,7 +19,6 @@ import { DeleteUserBody, UpdatePasswordBody, UpdateUserBody } from "@/schema/use
 import { JobIdParams } from "@/schema/job.schema";
 import { AppyJobPostBody, JobApplicationIdParams } from "@/schema/application.schema";
 import Application, { ApplicationDocument } from "@/models/application.model";
-import Session from "@/models/session.model";
 import { FlattenMaps } from "mongoose";
 import { Types } from "mongoose";
 
@@ -97,16 +96,6 @@ const updateUser = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
-    // Check if email is present in the session
-    const session = await Session.findOne({ email: user.email }).exec();
-
-    if (session) {
-      await session.deleteOne();
-    }
-
-    // Create a session for the token in the database
-    await Session.create({ email: updatedUser.email });
-
     res.json(updatedUser);
   } catch (error) {
     next(error);
@@ -171,15 +160,15 @@ const deleteUser = async (
     // Delete user
     await user.deleteOne();
 
-    // Find and delete user session in database
-    const userSession = await Session.findOne({ email: user.email }).exec();
-
-    if (userSession) {
-      await userSession.deleteOne();
-    }
+    // Clear cookies
+    res.clearCookie("jwt-token", {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
 
     // Clear cookies
-    res.clearCookie("jwt", {
+    res.clearCookie("jwt-token-refresh", {
       httpOnly: true,
       sameSite: "none",
       secure: true,

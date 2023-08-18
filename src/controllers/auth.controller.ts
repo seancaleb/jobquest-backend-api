@@ -12,7 +12,6 @@ import {
   USER_CREATED,
   USER_NOT_FOUND,
 } from "@/constants";
-import Session from "@/models/session.model";
 
 /**
  * @desc    Register
@@ -113,16 +112,6 @@ const login = async (
       maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry: set to match refreshToken (7 days)
     });
 
-    // Check if email is present in the session
-    const session = await Session.findOne({ email: user.email }).exec();
-
-    if (session) {
-      await session.deleteOne();
-    }
-
-    // Create a session for the token in the database
-    await Session.create({ email: user.email });
-
     // Send access token containing user information
     res.json({ accessToken });
   } catch (error) {
@@ -186,16 +175,6 @@ const refresh = async (
           }
         );
 
-        // Check if email is present in the session
-        const session = await Session.findOne({ email: user.email }).exec();
-
-        if (session) {
-          await session.deleteOne();
-        }
-
-        // Create a session for the token in the database
-        await Session.create({ email: user.email });
-
         res.cookie("jwt-token", accessToken, {
           httpOnly: true, // accessible only by the web server
           secure: true, // https only
@@ -236,9 +215,6 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
     sameSite: "none",
     secure: true,
   });
-
-  // Update the session in the sessions collection to mark the token as invalidated
-  await Session.findOneAndUpdate({ email }, { invalidated: true });
 
   res.json({ message: "Cookie cleared" });
 };
