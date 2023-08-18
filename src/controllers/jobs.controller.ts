@@ -255,7 +255,7 @@ const getAllJobApplications = async (
       },
       {
         $sort: {
-          updatedAt: -1,
+          createdAt: -1,
         },
       },
     ]);
