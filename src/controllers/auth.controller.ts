@@ -28,13 +28,14 @@ const register = async (
 
     // Check if email exists in database
     const emailExists = await User.find({ email }).lean();
+
     if (emailExists.length) {
-      res.status(409);
-      throw new Error(EMAIL_EXISTS);
+      return res.status(409).json({ message: EMAIL_EXISTS });
     }
 
     // Create user
     const user = await User.create({ ...req.body });
+
     if (user) {
       return res.status(201).json({ message: USER_CREATED });
     } else {
@@ -155,7 +156,7 @@ const refresh = async (
         const user = await User.findOne({ email });
 
         if (!user) {
-          return res.status(401).json({ message: USER_NOT_FOUND });
+          return res.status(404).json({ message: USER_NOT_FOUND });
         }
 
         // Create a new access token
