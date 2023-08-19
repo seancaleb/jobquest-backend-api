@@ -1,29 +1,26 @@
 /**
- * @status  403 - Forbidden
+ * @status  403 - FORBIDDE
  */
 export const FORBIDDEN = "Access Denied: You do not have permission to access this resource.";
+export const ACCESS_DENIED_ADMIN =
+  "Access Denied: This route is restricted to administrators only.";
+export const ACCESS_DENIED_EMPLOYER = "Acess Denied: This route is restricted to employers only.";
+export const ACCESS_DENIED_APPLICANT =
+  "Acess Denied: This route is restricted to user applicants only.";
+export const ACCESS_DENIED_UPDATE_JOB =
+  "Access Denied: Only the job creator is allowed to update this job listing.";
+export const ACCESS_DENIED_JOB_POST =
+  "Access Denied: Only the job creator is allowed to request this job listing.";
 
 /**
- * @status  401 - Unauthorized
+ * @status  401 - UNAUTHORIZED
  */
 export const UNAUTHORIZED = "Unauthorized: Please authenticate to access this resource.";
-export const UNAUTHORIZED_ADMIN =
-  "Unauthorized Access: This route is restricted to administrators only.";
-export const UNAUTHORIZED_EMPLOYER =
-  "Unauthorized Access: This route is restricted to employers only.";
-export const UNAUTHORIZED_APPLICANT =
-  "Unauthorized Access: This route is restricted to user applicants only.";
-export const UNAUTHORIZED_UPDATE_JOB =
-  "Unauthorized: Only the job creator is allowed to update this job listing.";
 export const INVALID_PASSWORD =
   "Invalid Credentials: The provided password is incorrect. Please verify your password and try again.";
-export const UNAUTHORIZED_JOB_POST =
-  "Unauthorized Access: Only the job creator is allowed to request this job listing.";
-export const UNAUTHORIZED_TOKEN_INVALIDATED =
-  "Unauthorized: Your token has been invalidated. Please authenticate again to access this resource.";
 
 /**
- * @status  404 - Not Found
+ * @status  404 - NOT FOUND
  */
 export const USER_NOT_FOUND = "User Not Found: The requested user does not exist.";
 export const JOB_NOT_FOUND = "Job Not Found: The requested job does not exist.";
@@ -31,7 +28,7 @@ export const JOB_APPLICATION_NOT_FOUND =
   "Job Application Not Found: The requested job application does not exist.";
 
 /**
- * @status  409 - Conflict
+ * @status  409 - CONFLICT
  */
 export const EMAIL_EXISTS =
   "Email Already Exists: The provided email is already associated with an existing account.";
@@ -47,7 +44,7 @@ export const APPLICATION_CREATED =
   "Application Submitted: The job application has been successfully submitted.";
 
 /**
- * @status  400 - Bad Request
+ * @status  400 - BAD REQUEST
  */
 export const BAD_REQUEST = "Bad Request: The server could not understand your request.";
 
@@ -65,5 +62,5 @@ export const JOB_APPLICATION_STATUS_UPDATED =
   "Application Status Updated: The application status has been successfully updated.";
 
 /**
- * @status  204 - No Content
+ * @status  204 - NO CONTENT
  */

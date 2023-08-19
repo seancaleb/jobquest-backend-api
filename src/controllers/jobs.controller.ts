@@ -15,9 +15,8 @@ import {
   JOB_NOT_FOUND,
   JOB_POST_DELETED,
   JOB_POST_UPDATED,
-  UNAUTHORIZED,
-  UNAUTHORIZED_JOB_POST,
-  UNAUTHORIZED_UPDATE_JOB,
+  ACCESS_DENIED_JOB_POST,
+  ACCESS_DENIED_UPDATE_JOB,
   USER_NOT_FOUND,
 } from "@/constants";
 import Application from "@/models/application.model";
@@ -172,7 +171,7 @@ const updateJobPost = async (
 
     // Check if employerId is same as the logged in employer's id
     if (jobPost.employerId.toString() !== id.toString()) {
-      return res.status(401).json({ message: UNAUTHORIZED_UPDATE_JOB });
+      return res.status(403).json({ message: ACCESS_DENIED_UPDATE_JOB });
     }
 
     const updateJobPost = await Job.findOneAndUpdate(
@@ -215,7 +214,7 @@ const getAllJobApplications = async (
 
     // Check if employer is the creator of the job post
     if (jobPost.employerId.toString() !== id.toString()) {
-      return res.status(401).json({ message: UNAUTHORIZED_JOB_POST });
+      return res.status(403).json({ message: ACCESS_DENIED_JOB_POST });
     }
 
     const { applications } = jobPost;
@@ -255,7 +254,7 @@ const getAllJobApplications = async (
       },
       {
         $sort: {
-          updatedAt: -1,
+          createdAt: -1,
         },
       },
     ]);
@@ -290,7 +289,7 @@ const updateJobApplicationStatus = async (
 
     // Check if employer is the creator of the job post
     if (jobPost.employerId.toString() !== id.toString()) {
-      return res.status(401).json({ message: UNAUTHORIZED_JOB_POST });
+      return res.status(403).json({ message: ACCESS_DENIED_JOB_POST });
     }
 
     const updatedApplication = await Application.findOneAndUpdate(
@@ -332,7 +331,7 @@ const deleteJobPost = async (
 
     // Check if employer is the creator of the job post
     if (jobPost.employerId.toString() !== id.toString()) {
-      return res.status(401).json({ message: UNAUTHORIZED_JOB_POST });
+      return res.status(403).json({ message: ACCESS_DENIED_JOB_POST });
     }
 
     const { jobId: jobPostId, _id } = await jobPost.deleteOne();

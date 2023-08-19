@@ -12,7 +12,6 @@ import {
 import authorizeUser from "@/middleware/authorizeUser";
 import validateResource from "@/middleware/validateResource";
 import verifyJwt from "@/middleware/verifyJwt";
-import verifyTokenSession from "@/middleware/verifyTokenSession";
 import { applyJobPostSchema, deleteJobApplicationSchema } from "@/schema/application.schema";
 import {
   bookmarkJobPostSchema,
@@ -24,7 +23,7 @@ import express from "express";
 
 const router = express.Router();
 
-router.use(verifyJwt, verifyTokenSession);
+router.use(verifyJwt);
 
 router.get("/profile", getUser);
 router.patch("/profile", validateResource(updateUserSchema), updateUser);

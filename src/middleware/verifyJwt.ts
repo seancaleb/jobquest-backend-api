@@ -21,12 +21,13 @@ const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
       return res.status(403).json({ message: FORBIDDEN });
     }
 
-    const { id, email } = decoded as Omit<UserType, "password"> & { id: ObjectId };
+    const { id } = decoded as Omit<UserType, "password"> & { id: ObjectId };
 
     // Check if user exists in database
     const user = await User.findById(id).lean();
+
     if (!user) {
-      return res.status(401).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
     req.user = { id, email: user.email, role: user.role };
