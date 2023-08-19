@@ -14,7 +14,7 @@ This repository contains a Job Backend API developed using Node.js, Express.js, 
   - [Running the API](#running-the-api)
 - [API Routes](#api-routes)
   - [Public Routes](#public-routes)
-  - [Authenticated Routes](#authenticated-routes)
+  - [Auth Routes](#auth-routes)
   - [User Routes](#user-routes)
   - [Employer Routes](#employer-routes)
   - [Admin Routes](#admin-routes)
@@ -88,7 +88,7 @@ cd snjobs-backend-api
 npm install
 ```
 
-    or
+or
 
 ```bash
 yarn install
@@ -167,7 +167,7 @@ REFRESH_TOKEN_EXPIRES_IN=      // <refresh-token-expiration>
 npm run dev
 ```
 
-    or
+or
 
 ```bash
 yarn dev
@@ -223,7 +223,7 @@ yarn dev
 npm run build
 ```
 
-    or
+or
 
 ```bash
 yarn build
@@ -235,7 +235,7 @@ yarn build
 npm run start
 ```
 
-    or
+or
 
 ```bash
 yarn start
