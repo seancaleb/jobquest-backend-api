@@ -96,6 +96,13 @@ const updateUser = async (
       return res.status(404).json({ message: USER_NOT_FOUND });
     }
 
+    if (updatedUser.role === "employer") {
+      await Job.updateMany(
+        { employerId: updatedUser._id },
+        { $set: { employerName: `${updatedUser.firstName} ${updatedUser.lastName[0]}.` } }
+      );
+    }
+
     res.json(updatedUser);
   } catch (error) {
     next(error);
