@@ -6,7 +6,7 @@
   "author": "Sean Caleb",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/app.ts",
-    "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/src/app.js",
+    "start": "set NODE_ENV=production&& node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/src/app.js",
     "build": "tsc",
     "build-start": "tsc && set NODE_ENV=production&& node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/src/app.js"
   },
