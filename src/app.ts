@@ -23,7 +23,6 @@ import helmet from "helmet";
 /**
  * Declarations
  */
-dotenv.config();
 const app = express();
 const PORT = config.get<number>("PORT");
 
@@ -34,7 +33,7 @@ app.use(loggerMiddleware);
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:4173"],
+    origin: ["http://localhost:5173", "http://localhost:4173", "https://sn-jobs.vercel.app"],
     credentials: true,
   })
 );
@@ -64,7 +63,7 @@ app.use(errorHandler);
  * Initialize express application
  */
 app.listen(PORT, async () => {
-  logger.info(`Application running in ${config.util.getEnv("NODE_ENV").toUpperCase()}`);
+  logger.info(`Application running in ${config.util.getEnv("NODE_CONFIG_ENV").toUpperCase()}`);
   await connect();
   logger.info(`Application is listening at port:${PORT}`);
 });
