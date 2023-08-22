@@ -1,14 +1,14 @@
 {
-  "name": "jobquest-backend-api",
+  "name": "snjobs-backend-api",
   "version": "1.0.0",
   "main": "app.js",
   "license": "MIT",
   "author": "Sean Caleb",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/app.ts",
-    "start": "set NODE_ENV=production&& node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/src/app.js",
+    "start": "set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js",
     "build": "tsc",
-    "build-start": "tsc && set NODE_ENV=production&& node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/src/app.js"
+    "build-start": "tsc && set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -42,5 +42,8 @@
     "pino": "^8.14.1",
     "pino-pretty": "^10.0.0",
     "zod": "^3.21.4"
+  },
+  "engines": {
+    "node": "^18.15.0"
   }
 }
