@@ -20,10 +20,14 @@ import adminRoute from "@/routes/admin.route";
 import compression from "compression";
 import helmet from "helmet";
 
+if (environment === "production")
+  config.util.toObject = () => {
+    return process.env;
+  };
+
 /**
  * Declarations
  */
-dotenv.config();
 const app = express();
 const PORT = config.get<number>("PORT");
 
