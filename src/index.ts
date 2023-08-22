@@ -13,10 +13,6 @@ import errorHandler from "@/middleware/errorHandler";
 import loggerMiddleware from "@/middleware/loggerMiddleware";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authRoute from "@/routes/auth.route";
-import usersRoute from "@/routes/users.route";
-import jobsRoute from "@/routes/jobs.route";
-import adminRoute from "@/routes/admin.route";
 import compression from "compression";
 import helmet from "helmet";
 
@@ -48,10 +44,11 @@ app.use(helmet());
 /**
  * All Routes
  */
-app.use("/api/admin", adminRoute);
-app.use("/api/auth", authRoute);
-app.use("/api/users", usersRoute);
-app.use("/api", jobsRoute);
+app.get("/api", (req, res) => {
+  return res.json({
+    message: "Your API is working",
+  });
+});
 
 /**
  * Catch-all middleware

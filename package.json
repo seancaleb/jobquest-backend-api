@@ -1,14 +1,14 @@
 {
   "name": "snjobs-backend-api",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "index.js",
   "license": "MIT",
   "author": "Sean Caleb",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/app.ts",
-    "start": "set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js",
+    "dev": "ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/index.ts",
+    "start": "set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/index.js",
     "build": "tsc",
-    "build-start": "tsc && set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js"
+    "build-start": "tsc && set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/index.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
