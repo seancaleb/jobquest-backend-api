@@ -1,14 +1,16 @@
 {
   "name": "snjobs-backend-api",
   "version": "1.0.0",
-  "main": "dist/src/app.js",
-  "license": "MIT",
   "author": "Sean Caleb",
+  "license": "MIT",
+  "main": "dist/src/app.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/app.ts",
-    "start": "set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js",
-    "build": "tsc",
-    "build-start": "tsc && set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js"
+    "x": "ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/app.ts",
+    "y": "set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js",
+    "build-start": "tsc && set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js",
+    "dev": "ts-node-dev -r tsconfig-paths/register src/app.ts",
+    "build": "npx tsc && tsc-alias -p tsconfig.json",
+    "start": "SET TS_NODE_BASEURL=./dist && node dist/app.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -41,6 +43,7 @@
     "nanoid": "3.0.0",
     "pino": "^8.14.1",
     "pino-pretty": "^10.0.0",
+    "tsc-alias": "^1.8.7",
     "zod": "^3.21.4"
   }
 }
