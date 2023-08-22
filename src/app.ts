@@ -1,11 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-
-const environment = process.env.NODE_ENV || "development";
-dotenv.config({
-  path: `.env.${environment}`,
-});
-
 import config from "config";
 import connect from "@/utils/connect";
 import logger from "@/utils/logger";
@@ -20,10 +14,17 @@ import adminRoute from "@/routes/admin.route";
 import compression from "compression";
 import helmet from "helmet";
 
-if (environment === "production")
+console.log(process.env.NODE_ENV);
+
+if (process.env.NODE_ENV === "production") {
+  dotenv.config();
   config.util.toObject = () => {
     return process.env;
   };
+} else
+  dotenv.config({
+    path: `.env.${process.env.NODE_ENV}`,
+  });
 
 /**
  * Declarations
