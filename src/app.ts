@@ -14,13 +14,8 @@ import adminRoute from "@/routes/admin.route";
 import compression from "compression";
 import helmet from "helmet";
 
-console.log(process.env.NODE_ENV);
-
 if (process.env.NODE_ENV === "production") {
   dotenv.config();
-  config.util.toObject = () => {
-    return process.env;
-  };
 } else
   dotenv.config({
     path: `.env.${process.env.NODE_ENV}`,
