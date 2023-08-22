@@ -33,7 +33,11 @@ app.use(loggerMiddleware);
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:4173", "https://sn-jobs.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:4173",
+      "https://sn-jobs-react-app.vercel.app",
+    ],
     credentials: true,
   })
 );
