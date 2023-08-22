@@ -1,5 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
+import path from "path";
+
+const environment = process.env.NODE_ENV || "development";
+dotenv.config({
+  path: `.env.${environment}`,
+});
+
 import config from "config";
 import connect from "@/utils/connect";
 import logger from "@/utils/logger";
@@ -14,12 +21,12 @@ import adminRoute from "@/routes/admin.route";
 import compression from "compression";
 import helmet from "helmet";
 
-if (process.env.NODE_ENV === "production") {
-  dotenv.config();
-} else
-  dotenv.config({
-    path: `.env.${process.env.NODE_ENV}`,
-  });
+console.log(environment);
+console.log(config.get("PORT"));
+console.log(config.get("saltWorkFactor"));
+console.log(config.get("mongoPath"));
+console.log(config.get("accessToken"));
+console.log(config.get("refreshToken"));
 
 /**
  * Declarations
@@ -64,7 +71,7 @@ app.use(errorHandler);
  * Initialize express application
  */
 app.listen(PORT, async () => {
-  logger.info(`Application running in ${config.util.getEnv("NODE_ENV").toUpperCase()}`);
+  logger.info(`Application running in ${config.util.getEnv("NODE_CONFIG_ENV").toUpperCase()}`);
   await connect();
   logger.info(`Application is listening at port:${PORT}`);
 });

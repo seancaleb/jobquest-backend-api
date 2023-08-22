@@ -12,6 +12,7 @@ const connect = async () => {
     await mongoose.connect(config.get<string>("mongoPath"));
     logger.info("Connected to database");
   } catch (error) {
+    console.log(error);
     logger.info("Could not connect to database");
   }
 };
