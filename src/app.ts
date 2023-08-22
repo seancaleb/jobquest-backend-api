@@ -1,6 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-import path from "path";
 
 const environment = process.env.NODE_ENV || "development";
 dotenv.config({
@@ -21,13 +20,6 @@ import adminRoute from "@/routes/admin.route";
 import compression from "compression";
 import helmet from "helmet";
 
-console.log(environment);
-console.log(config.get("PORT"));
-console.log(config.get("saltWorkFactor"));
-console.log(config.get("mongoPath"));
-console.log(config.get("accessToken"));
-console.log(config.get("refreshToken"));
-
 /**
  * Declarations
  */
@@ -41,7 +33,7 @@ app.use(loggerMiddleware);
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:4173"],
+    origin: ["http://localhost:5173", "http://localhost:4173", "https://sn-jobs.vercel.app"],
     credentials: true,
   })
 );
