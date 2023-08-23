@@ -5,12 +5,9 @@
   "license": "MIT",
   "main": "dist/src/app.js",
   "scripts": {
-    "dev": "SET NODE_ENV=development&& ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/app.ts",
-    "y": "set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js",
-    "build-start": "tsc && set NODE_ENV=production&& node -r tsconfig-paths/register dist/src/app.js",
-    "x": "ts-node-dev -r tsconfig-paths/register src/app.ts",
     "build": "npx tsc && tsc-alias -p tsconfig.json",
-    "start": "SET TS_NODE_BASEURL=./dist && node dist/app.js"
+    "dev": "SET NODE_ENV=development&& ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/app.ts",
+    "start": "SET NODE_ENV=production&& SET TS_NODE_BASEURL=./dist && node dist/app.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
