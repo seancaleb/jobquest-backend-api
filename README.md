@@ -22,35 +22,21 @@ This repository contains a Job Backend API developed using Node.js, Express.js, 
 
 ## High-level Features
 
-1. #### User Authentication and Authorization
-   - Differentiates between job seekers, employers, and administrators.
    - Provides role-based access control.
-2. #### Job Application
    - Enables job seekers to easily apply for desired positions.
-3. #### User Account Management
    - Users can update their account.
-4. #### Bookmarking Job Posts
-   - Allows users to bookmark job posts for future reference.
-5. #### Employer-Specific Features
+   - Allows job seekers to bookmark job posts for future reference.
    - Employers can create, update, and delete job posts.
-   - Facilitates review of job applications.
-6. #### Administrative Functionality
+   - Employers can facilitate review of job applications.
    - Administrators have access to tools for user and application management.
 
 ## Technical Features
 
-1. #### JWT-Based Authentication and Token Refreshing
    - Implements JSON Web Tokens (JWT) for secure user authentication.
    - Includes a token refreshing mechanism to extend user sessions.
-2. #### Role-Based Access Control
    - Enforces different access levels based on user roles.
-3. #### Secure Refresh Token Handling
-   - Implements secure methods for handling refresh tokens.
-4. #### CRUD Operations
    - Features CRUD operations on job posts and user profiles.
-5. #### Validation
    - Implements data validation using Zod to maintain data integrity.
-6. #### Pagination
    - Includes server-side pagination for job-listings.
 
 ## Requirements
