@@ -13,6 +13,7 @@ import {
   USER_NOT_FOUND,
 } from "@/constants";
 
+
 /**
  * @desc    Register
  * @route   POST /api/auth/register
@@ -95,6 +96,7 @@ const login = async (
       secure: true, // https only
       sameSite: "none", // cross site cookie
       maxAge: 15 * 60 * 1000, // cookie expiry: set to match accessToken (15 minutes)
+      domain: process.env.NODE_ENV === "production" ? ".react-app.vercel.app" : undefined,
     });
 
     // Create a refresh token
@@ -111,6 +113,7 @@ const login = async (
       secure: true, // https only
       sameSite: "none", // cross site cookie
       maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiry: set to match refreshToken (7 days)
+      domain: process.env.NODE_ENV === "production" ? ".react-app.vercel.app" : undefined,
     });
 
     // Send access token containing user information
@@ -181,6 +184,7 @@ const refresh = async (
           secure: true, // https only
           sameSite: "none", // cross site cookie
           maxAge: 15 * 60 * 1000, // cookie expiry: set to match accessToken (15 minutes)
+          domain: process.env.NODE_ENV === "production" ? ".react-app.vercel.app" : undefined,
         });
 
         res.json({ accessToken });
