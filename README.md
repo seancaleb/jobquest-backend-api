@@ -1,6 +1,6 @@
 # SNJOBS Back-End API (Built with Node.js, Express, TypeScript, Mongoose, MongoDB, JWT and Zod)
 
-This repository contains a Job Backend API developed using Node.js, Express.js, TypeScript, Mongoose, MongoDB, and Zod. It provides a set of routes to manage jobs, user authentication, user profiles, job applications, bookmarks, and employer-specific operations. This README.md file provides an overview of the API and explains how to set it up and use it effectively.
+This repository contains a Job Backend API developed using Node.js, Express.js, TypeScript, Mongoose, MongoDB, and Zod. It provides a set of routes to manage jobs, user authentication, user profiles, job applications, bookmarks, and employer-specific operations.
 
 ## Table of Contents
 
