@@ -195,6 +195,7 @@ yarn dev
 - GET - `/api/employers/jobs/:jobId/applications` - Retrieves the list of applications for a specific job post.
 - PATCH - `/api/employers/jobs/:jobId/applications/:applicationId/review` - Reviews an application for a specific job post.
 - GET - `/api/employers/jobs` - Retrieves the list of job postings created by the employer.
+- GET - `/api/employers/jobs/applications` - Retrieves the list of all job applications and related data for all job postings.
 
 #### Admin Routes
 
