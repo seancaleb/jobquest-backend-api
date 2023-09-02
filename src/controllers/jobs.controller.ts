@@ -392,6 +392,132 @@ const getAllJobPostings = async (
   }
 };
 
+/**
+ * @desc    Get all job applications
+ * @route   GET /api/jobs/applications
+ * @access  PROTECTED - only for employers only
+ */
+const getAllApplications = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { id, email } = req.user;
+
+    const employer = await User.findOne({ email }).lean();
+
+    if (!employer) {
+      return res.status(404).json({ message: USER_NOT_FOUND });
+    }
+
+    const jobsResult = await Job.find({ employerId: employer._id }).select("-_id jobId createdAt");
+    const jobIds = jobsResult.map(({ jobId }) => jobId);
+
+    const applications = await Application.find({ jobId: { $in: jobIds } })
+      .select("-_id status createdAt")
+      .sort("createdAt");
+
+    const applicationStatusDistribution = [
+      { name: "Applied", value: 0 },
+      { name: "Viewed", value: 0 },
+      { name: "Rejected", value: 0 },
+    ];
+
+    applications.forEach((application) => {
+      const status = application.status;
+      if (status === "Applied") {
+        applicationStatusDistribution[0].value++;
+      } else if (status === "Application viewed") {
+        applicationStatusDistribution[1].value++;
+      } else {
+        applicationStatusDistribution[2].value++;
+      }
+    });
+
+    const firstJobPostDate = jobsResult.length > 0 ? new Date(jobsResult[0].createdAt) : new Date(); // Replace with the actual creation date of the first job post
+    const currentDate = new Date(); // Current date
+
+    // Calculate the date range based on the first job post date
+    let startDate = new Date(firstJobPostDate);
+
+    // Calculate the difference in days between the current date and the start date
+    const dayDifference = Math.floor(
+      (currentDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)
+    );
+
+    // If the range exceeds 30 days, set the start date to 30 days ago from the current date
+    if (dayDifference > 30) {
+      startDate = new Date(currentDate);
+      startDate.setDate(currentDate.getDate() - 30);
+    }
+
+    const dateArray = [];
+    let currentDatePointer = new Date(startDate);
+
+    while (currentDatePointer <= currentDate) {
+      dateArray.push(new Date(currentDatePointer));
+      currentDatePointer.setDate(currentDatePointer.getDate() + 1);
+    }
+
+    dateArray.push(new Date(currentDatePointer));
+
+    const applicationCounts = await Application.aggregate([
+      {
+        $match: {
+          jobId: { $in: jobIds },
+          createdAt: {
+            $gte: startDate,
+            $lte: currentDate,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const applicationTrends: { date: string; applications: number }[] = [];
+
+    dateArray.forEach((date) => {
+      const dateString = `${date.getMonth() + 1}/${date.getDate()}`;
+      applicationTrends.push({ date: dateString, applications: 0 });
+    });
+
+    applicationCounts.forEach((item) => {
+      const dateString = `${item._id.month}/${item._id.day}`;
+      const target = applicationTrends.find((item) => item.date === dateString);
+      if (target) target.applications = item.count;
+    });
+
+    let applicationTrendsGraphActive = false;
+
+    if (applications.length > 0) {
+      const dayElapsed = Math.floor(
+        (currentDate.getTime() - applications[0].createdAt.getTime()) / (24 * 60 * 60 * 1000)
+      );
+      applicationTrendsGraphActive = applications.length > 0 && dayElapsed >= 7;
+    }
+
+    return res.json({
+      totalJobs: jobsResult.length,
+      totalApplications: applications.length,
+      applications,
+      applicationStatusDistribution,
+      applicationTrends,
+      applicationTrendsGraphActive,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getJobs,
   getJob,
@@ -401,4 +527,5 @@ export {
   updateJobApplicationStatus,
   deleteJobPost,
   getAllJobPostings,
+  getAllApplications,
 };

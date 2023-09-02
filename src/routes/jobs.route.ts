@@ -1,6 +1,7 @@
 import {
   createJobPost,
   deleteJobPost,
+  getAllApplications,
   getAllJobApplications,
   getAllJobPostings,
   getJob,
@@ -48,5 +49,6 @@ router.delete(
   deleteJobPost
 );
 router.get("/employers/jobs", pagination, getAllJobPostings);
+router.get("/employers/jobs/applications", getAllApplications);
 
 export default router;

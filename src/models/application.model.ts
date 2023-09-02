@@ -6,7 +6,7 @@ export interface ApplicationDocument extends ApplicationType, Document {
   jobId: string;
   applicantId: typeof Types.ObjectId;
   applicationId: string;
-  status: "Applied" | "Application viewed" | "not selected by employer";
+  status: "Applied" | "Application viewed" | "Not selected by employer";
   createdAt: Date;
   updatedAt: Date;
 }
