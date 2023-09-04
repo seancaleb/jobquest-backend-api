@@ -415,8 +415,8 @@ const getAllApplications = async (
     const jobIds = jobsResult.map(({ jobId }) => jobId);
 
     const applications = await Application.find({ jobId: { $in: jobIds } })
-      .select("-_id status createdAt")
-      .sort("createdAt");
+      .select("-_id jobId applicationId status createdAt updatedAt")
+      .sort("-createdAt");
 
     const applicationStatusDistribution = [
       { name: "Applied", value: 0 },
@@ -460,8 +460,6 @@ const getAllApplications = async (
       currentDatePointer.setDate(currentDatePointer.getDate() + 1);
     }
 
-    dateArray.push(new Date(currentDatePointer));
-
     const applicationCounts = await Application.aggregate([
       {
         $match: {
@@ -500,7 +498,8 @@ const getAllApplications = async (
 
     if (applications.length > 0) {
       const dayElapsed = Math.floor(
-        (currentDate.getTime() - applications[0].createdAt.getTime()) / (24 * 60 * 60 * 1000)
+        (currentDate.getTime() - applications[applications.length - 1].createdAt.getTime()) /
+          (24 * 60 * 60 * 1000)
       );
       applicationTrendsGraphActive = applications.length > 0 && dayElapsed >= 7;
     }
