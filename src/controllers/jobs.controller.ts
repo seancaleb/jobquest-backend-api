@@ -405,7 +405,6 @@ const getAllApplications = async (
 ): Promise<Response | void> => {
   try {
     const { id, email } = req.user;
-    const timeZone = req.headers["x-user-timezone"] as string;
 
     const employer = await User.findOne({ email }).lean();
 
@@ -439,12 +438,12 @@ const getAllApplications = async (
 
     const firstJobPostDate =
       jobsResult.length > 0
-        ? createDateInTimezone(timeZone, jobsResult[0].createdAt)
-        : createDateInTimezone(timeZone); // Replace with the actual creation date of the first job post
-    const currentDate = createDateInTimezone(timeZone); // Current date
+        ? createDateInTimezone(jobsResult[0].createdAt)
+        : createDateInTimezone(); // Replace with the actual creation date of the first job post
+    const currentDate = createDateInTimezone(); // Current date
 
     // Calculate the date range based on the first job post date
-    let startDate = createDateInTimezone(timeZone, firstJobPostDate);
+    let startDate = createDateInTimezone(firstJobPostDate);
 
     // Calculate the difference in days between the current date and the start date
     const dayDifference = Math.floor(
@@ -453,17 +452,19 @@ const getAllApplications = async (
 
     // If the range exceeds 30 days, set the start date to 30 days ago from the current date
     if (dayDifference > 30) {
-      startDate = createDateInTimezone(timeZone, currentDate);
+      startDate = createDateInTimezone(currentDate);
       startDate.setDate(currentDate.getDate() - 30);
     }
 
     const dateArray = [];
-    let currentDatePointer = createDateInTimezone(timeZone, startDate);
+    let currentDatePointer = createDateInTimezone(startDate);
 
     while (currentDatePointer <= currentDate) {
-      dateArray.push(createDateInTimezone(timeZone, currentDatePointer));
+      dateArray.push(createDateInTimezone(currentDatePointer));
       currentDatePointer.setDate(currentDatePointer.getDate() + 1);
     }
+
+    console.log(currentDate);
 
     const applicationCounts = await Application.aggregate([
       {
