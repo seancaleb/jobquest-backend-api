@@ -23,6 +23,7 @@ import Application from "@/models/application.model";
 import User from "@/models/user.model";
 import { SortOrder } from "mongoose";
 import { subDays } from "date-fns";
+import createDateInTimezone from "@/utils/createDateInTimezone";
 
 /**
  * @desc    Get all jobs
@@ -404,6 +405,7 @@ const getAllApplications = async (
 ): Promise<Response | void> => {
   try {
     const { id, email } = req.user;
+    const timeZone = req.headers["x-user-timezone"] as string;
 
     const employer = await User.findOne({ email }).lean();
 
@@ -435,11 +437,14 @@ const getAllApplications = async (
       }
     });
 
-    const firstJobPostDate = jobsResult.length > 0 ? new Date(jobsResult[0].createdAt) : new Date(); // Replace with the actual creation date of the first job post
-    const currentDate = new Date(); // Current date
+    const firstJobPostDate =
+      jobsResult.length > 0
+        ? createDateInTimezone(timeZone, jobsResult[0].createdAt)
+        : createDateInTimezone(timeZone); // Replace with the actual creation date of the first job post
+    const currentDate = createDateInTimezone(timeZone); // Current date
 
     // Calculate the date range based on the first job post date
-    let startDate = new Date(firstJobPostDate);
+    let startDate = createDateInTimezone(timeZone, firstJobPostDate);
 
     // Calculate the difference in days between the current date and the start date
     const dayDifference = Math.floor(
@@ -448,15 +453,15 @@ const getAllApplications = async (
 
     // If the range exceeds 30 days, set the start date to 30 days ago from the current date
     if (dayDifference > 30) {
-      startDate = new Date(currentDate);
+      startDate = createDateInTimezone(timeZone, currentDate);
       startDate.setDate(currentDate.getDate() - 30);
     }
 
     const dateArray = [];
-    let currentDatePointer = new Date(startDate);
+    let currentDatePointer = createDateInTimezone(timeZone, startDate);
 
     while (currentDatePointer <= currentDate) {
-      dateArray.push(new Date(currentDatePointer));
+      dateArray.push(createDateInTimezone(timeZone, currentDatePointer));
       currentDatePointer.setDate(currentDatePointer.getDate() + 1);
     }
 
