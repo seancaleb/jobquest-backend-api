@@ -437,11 +437,33 @@ const getAllApplications = async (
       }
     });
 
+    let applicationTrendsGraphActive = false;
+    const currentDate = createDateInTimezone(timezone); // Current date
+
+    if (applications.length === 0) {
+      return res.json({
+        totalJobs: jobsResult.length,
+        totalApplications: applications.length,
+        applications,
+        applicationStatusDistribution,
+        applicationTrends: [],
+        applicationTrendsGraphActive,
+      });
+    }
+
+    const dayElapsed = Math.floor(
+      (currentDate.getTime() - applications[applications.length - 1].createdAt.getTime()) /
+        (24 * 60 * 60 * 1000)
+    );
+
+    if (applications.length > 0 && dayElapsed >= 7) {
+      applicationTrendsGraphActive = true;
+    }
+
     const firstJobPostDate =
       jobsResult.length > 0
         ? createDateInTimezone(timezone, jobsResult[0].createdAt)
         : createDateInTimezone(timezone); // Replace with the actual creation date of the first job post
-    const currentDate = createDateInTimezone(timezone); // Current date
 
     // Calculate the date range based on the first job post date
     let startDate = createDateInTimezone(timezone, firstJobPostDate);
@@ -462,11 +484,14 @@ const getAllApplications = async (
 
     while (!isSameDay(currentDatePointer, currentDate)) {
       dateArray.push(createDateInTimezone(timezone, currentDatePointer));
+
       currentDatePointer.setDate(currentDatePointer.getDate() + 1);
 
       if (isSameDay(currentDatePointer, currentDate))
         dateArray.push(createDateInTimezone(timezone, currentDatePointer));
     }
+
+    const applicationTrends: { date: string; applications: number }[] = [];
 
     const applicationCounts = await Application.aggregate([
       {
@@ -489,8 +514,6 @@ const getAllApplications = async (
       },
     ]);
 
-    const applicationTrends: { date: string; applications: number }[] = [];
-
     dateArray.forEach((date) => {
       const dateString = `${date.getMonth() + 1}/${date.getDate()}`;
       applicationTrends.push({ date: dateString, applications: 0 });
@@ -501,16 +524,6 @@ const getAllApplications = async (
       const target = applicationTrends.find((item) => item.date === dateString);
       if (target) target.applications = item.count;
     });
-
-    let applicationTrendsGraphActive = false;
-
-    if (applications.length > 0) {
-      const dayElapsed = Math.floor(
-        (currentDate.getTime() - applications[applications.length - 1].createdAt.getTime()) /
-          (24 * 60 * 60 * 1000)
-      );
-      applicationTrendsGraphActive = applications.length > 0 && dayElapsed >= 7;
-    }
 
     return res.json({
       totalJobs: jobsResult.length,
