@@ -22,7 +22,7 @@ import {
 import Application from "@/models/application.model";
 import User from "@/models/user.model";
 import { SortOrder } from "mongoose";
-import { subDays } from "date-fns";
+import { isSameDay, subDays } from "date-fns";
 import createDateInTimezone from "@/utils/createDateInTimezone";
 
 /**
@@ -404,7 +404,8 @@ const getAllApplications = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { id, email } = req.user;
+    const { email } = req.user;
+    const timezone = req.headers["x-user-timezone"] as string;
 
     const employer = await User.findOne({ email }).lean();
 
@@ -438,12 +439,12 @@ const getAllApplications = async (
 
     const firstJobPostDate =
       jobsResult.length > 0
-        ? createDateInTimezone(jobsResult[0].createdAt)
-        : createDateInTimezone(); // Replace with the actual creation date of the first job post
-    const currentDate = createDateInTimezone(); // Current date
+        ? createDateInTimezone(timezone, jobsResult[0].createdAt)
+        : createDateInTimezone(timezone); // Replace with the actual creation date of the first job post
+    const currentDate = createDateInTimezone(timezone); // Current date
 
     // Calculate the date range based on the first job post date
-    let startDate = createDateInTimezone(firstJobPostDate);
+    let startDate = createDateInTimezone(timezone, firstJobPostDate);
 
     // Calculate the difference in days between the current date and the start date
     const dayDifference = Math.floor(
@@ -452,19 +453,20 @@ const getAllApplications = async (
 
     // If the range exceeds 30 days, set the start date to 30 days ago from the current date
     if (dayDifference > 30) {
-      startDate = createDateInTimezone(currentDate);
+      startDate = createDateInTimezone(timezone, currentDate);
       startDate.setDate(currentDate.getDate() - 30);
     }
 
     const dateArray = [];
-    let currentDatePointer = createDateInTimezone(startDate);
+    let currentDatePointer = createDateInTimezone(timezone, startDate);
 
-    while (currentDatePointer <= currentDate) {
-      dateArray.push(createDateInTimezone(currentDatePointer));
+    while (!isSameDay(currentDatePointer, currentDate)) {
+      dateArray.push(createDateInTimezone(timezone, currentDatePointer));
       currentDatePointer.setDate(currentDatePointer.getDate() + 1);
-    }
 
-    console.log(currentDate);
+      if (isSameDay(currentDatePointer, currentDate))
+        dateArray.push(createDateInTimezone(timezone, currentDatePointer));
+    }
 
     const applicationCounts = await Application.aggregate([
       {

@@ -1,15 +1,11 @@
 import { format, parseISO } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
-import getUserTimezone from "./getUserTimezone";
 
-const createDateInTimezone = (date?: string | Date) => {
+const createDateInTimezone = (timezone: string, date?: string | Date) => {
   const now = new Date();
 
   const formattedDate = format(
-    utcToZonedTime(
-      date ? date : now,
-      process.env.NODE_ENV === "development" ? getUserTimezone() : "UTC"
-    ),
+    utcToZonedTime(date ? date : now, timezone),
     "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"
   );
 
