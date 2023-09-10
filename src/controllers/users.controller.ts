@@ -212,7 +212,7 @@ const updatePassword = async (
 
     // Check if user password doesn't match password from the database
     if (!isPasswordMatch) {
-      return res.status(401).json({ message: INVALID_PASSWORD });
+      return res.status(403).json({ message: INVALID_PASSWORD });
     }
 
     await User.findOneAndUpdate(
