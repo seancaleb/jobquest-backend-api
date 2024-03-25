@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import config from "config";
 import { UserType } from "@/schema/user.schema";
-import { FORBIDDEN, UNAUTHORIZED, USER_NOT_FOUND } from "@/constants";
+import { FORBIDDEN, UNAUTHORIZED, ACCOUNT_NOT_FOUND } from "@/constants";
 import { ObjectId } from "mongoose";
 
 const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
@@ -27,7 +27,7 @@ const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(id).lean();
 
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     req.user = { id, email: user.email, role: user.role };

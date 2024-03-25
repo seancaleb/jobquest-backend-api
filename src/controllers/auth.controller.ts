@@ -9,8 +9,8 @@ import {
   FORBIDDEN,
   INVALID_PASSWORD,
   UNAUTHORIZED,
-  USER_CREATED,
-  USER_NOT_FOUND,
+  ACCOUNT_CREATED,
+  ACCOUNT_NOT_FOUND,
 } from "@/constants";
 
 /**
@@ -37,7 +37,7 @@ const register = async (
     const user = await User.create({ ...req.body });
 
     if (user) {
-      return res.status(201).json({ message: USER_CREATED });
+      return res.status(201).json({ message: ACCOUNT_CREATED });
     } else {
       res.status(400).json({ message: BAD_REQUEST });
     }
@@ -63,7 +63,7 @@ const login = async (
 
     // Check if user doesn't exist
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const isPasswordMatch = await user.comparePassword(password);
@@ -156,7 +156,7 @@ const refresh = async (
         const user = await User.findOne({ email });
 
         if (!user) {
-          return res.status(404).json({ message: USER_NOT_FOUND });
+          return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
         }
 
         // Create a new access token
