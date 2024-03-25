@@ -17,13 +17,13 @@ import {
   JOB_POST_UPDATED,
   ACCESS_DENIED_JOB_POST,
   ACCESS_DENIED_UPDATE_JOB,
-  USER_NOT_FOUND,
+  ACCOUNT_NOT_FOUND,
 } from "@/constants";
 import Application from "@/models/application.model";
 import User from "@/models/user.model";
 import { SortOrder } from "mongoose";
-import { isSameDay, subDays } from "date-fns";
-import createDateInTimezone from "@/utils/createDateInTimezone";
+import { format, formatISO, isSameDay, parseISO, subDays } from "date-fns";
+import { JobApplicationIdParams } from "@/schema/application.schema";
 
 /**
  * @desc    Get all jobs
@@ -53,7 +53,9 @@ const getJobs = async (
 
     if (location) {
       const parsedLocation = location.split(",");
-      const locationRegexArray = parsedLocation.map((location) => new RegExp(location, "i"));
+      const locationRegexArray = parsedLocation.map(
+        (location) => new RegExp(location, "i")
+      );
       query.where("location").in(locationRegexArray);
     }
 
@@ -77,9 +79,13 @@ const getJobs = async (
     const jobs = await query.exec();
 
     if (jobs.length) {
-      return res.status(200).json({ total: totalJobs, jobs, limit, pageNumber, totalPages });
+      return res
+        .status(200)
+        .json({ total: totalJobs, jobs, limit, pageNumber, totalPages });
     } else {
-      res.status(200).json({ total: totalJobs, jobs: [], limit, pageNumber, totalPages });
+      res
+        .status(200)
+        .json({ total: totalJobs, jobs: [], limit, pageNumber, totalPages });
     }
   } catch (error) {
     next(error);
@@ -128,7 +134,7 @@ const createJobPost = async (
     const employer = await User.findOne({ email }).lean();
 
     if (!employer) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     // Create a new job post
@@ -194,7 +200,7 @@ const updateJobPost = async (
 
 /**
  * @desc    Get list of applications for a job post
- * @route   GET /api/employers/jobs/:jobId
+ * @route   GET /api/employers/jobs/:jobId/applications
  * @access  PROTECTED - only for employers only
  */
 const getAllJobApplications = async (
@@ -218,13 +224,13 @@ const getAllJobApplications = async (
       return res.status(403).json({ message: ACCESS_DENIED_JOB_POST });
     }
 
-    const { applications } = jobPost;
+    const { applications: jobApplications } = jobPost;
 
     // Get all applications for a job post and include user information
-    const jobApplications = await Application.aggregate([
+    const applications = await Application.aggregate([
       {
         $match: {
-          applicantId: { $in: applications },
+          applicantId: { $in: jobApplications },
           jobId,
         },
       },
@@ -260,7 +266,7 @@ const getAllJobApplications = async (
       },
     ]);
 
-    res.status(200).json({ total: jobApplications.length, jobApplications });
+    res.status(200).json({ total: applications.length, applications });
   } catch (error) {
     next(error);
   }
@@ -303,7 +309,10 @@ const updateJobApplicationStatus = async (
       return res.status(404).json({ message: JOB_APPLICATION_NOT_FOUND });
     }
 
-    res.status(200).json({ updatedApplication, message: JOB_APPLICATION_STATUS_UPDATED });
+    res.status(200).json({
+      application: updatedApplication,
+      message: JOB_APPLICATION_STATUS_UPDATED,
+    });
   } catch (error) {
     next(error);
   }
@@ -384,9 +393,13 @@ const getAllJobPostings = async (
     const jobs = await query.exec();
 
     if (jobs.length) {
-      return res.status(200).json({ total: totalJobs, jobs, limit, pageNumber, totalPages });
+      return res
+        .status(200)
+        .json({ total: totalJobs, jobs, limit, pageNumber, totalPages });
     } else {
-      res.status(200).json({ total: totalJobs, jobs: [], limit, pageNumber, totalPages });
+      res
+        .status(200)
+        .json({ total: totalJobs, jobs: [], limit, pageNumber, totalPages });
     }
   } catch (error) {
     next(error);
@@ -398,47 +411,83 @@ const getAllJobPostings = async (
  * @route   GET /api/jobs/applications
  * @access  PROTECTED - only for employers only
  */
-const getAllApplications = async (
+const getApplicationsOverview = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
     const { email } = req.user;
-    const timezone = req.headers["x-user-timezone"] as string;
 
     const employer = await User.findOne({ email }).lean();
 
     if (!employer) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
-    const jobsResult = await Job.find({ employerId: employer._id }).select("-_id jobId createdAt");
+    const jobsResult = await Job.find({ employerId: employer._id }).select(
+      "-_id jobId createdAt"
+    );
+
     const jobIds = jobsResult.map(({ jobId }) => jobId);
 
-    const applications = await Application.find({ jobId: { $in: jobIds } })
-      .select("-_id jobId applicationId status createdAt updatedAt")
-      .sort("-createdAt");
+    const applications = await Application.aggregate([
+      {
+        $match: {
+          jobId: { $in: jobIds },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "applicantId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $addFields: {
+          user: {
+            $first: {
+              $map: {
+                input: "$user",
+                as: "userData",
+                in: {
+                  firstName: "$$userData.firstName",
+                  lastName: "$$userData.lastName",
+                  userId: "$$userData.userId",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+    ]);
 
     const applicationStatusDistribution = [
-      { name: "Applied", value: 0 },
-      { name: "Viewed", value: 0 },
-      { name: "Rejected", value: 0 },
+      { name: "Applied", count: 0 },
+      { name: "Viewed", count: 0 },
+      { name: "Rejected", count: 0 },
     ];
 
     applications.forEach((application) => {
       const status = application.status;
       if (status === "Applied") {
-        applicationStatusDistribution[0].value++;
+        applicationStatusDistribution[0].count++;
       } else if (status === "Application viewed") {
-        applicationStatusDistribution[1].value++;
+        applicationStatusDistribution[1].count++;
       } else {
-        applicationStatusDistribution[2].value++;
+        applicationStatusDistribution[2].count++;
       }
     });
 
     let applicationTrendsGraphActive = false;
-    const currentDate = createDateInTimezone(timezone); // Current date
+    const currentDate = new Date(); // Current date
 
     if (applications.length === 0) {
       return res.json({
@@ -452,21 +501,19 @@ const getAllApplications = async (
     }
 
     const dayElapsed = Math.floor(
-      (currentDate.getTime() - applications[applications.length - 1].createdAt.getTime()) /
+      (currentDate.getTime() - employer.createdAt.getTime()) /
         (24 * 60 * 60 * 1000)
     );
 
-    if (applications.length > 0 && dayElapsed >= 7) {
+    if (applications.length > 0 && dayElapsed >= 3) {
       applicationTrendsGraphActive = true;
     }
 
     const firstJobPostDate =
-      jobsResult.length > 0
-        ? createDateInTimezone(timezone, jobsResult[0].createdAt)
-        : createDateInTimezone(timezone); // Replace with the actual creation date of the first job post
+      jobsResult.length > 0 ? jobsResult[0].createdAt : currentDate; // Replace with the actual creation date of the first job post
 
     // Calculate the date range based on the first job post date
-    let startDate = createDateInTimezone(timezone, firstJobPostDate);
+    let startDate = firstJobPostDate;
 
     // Calculate the difference in days between the current date and the start date
     const dayDifference = Math.floor(
@@ -475,20 +522,21 @@ const getAllApplications = async (
 
     // If the range exceeds 30 days, set the start date to 30 days ago from the current date
     if (dayDifference > 30) {
-      startDate = createDateInTimezone(timezone, currentDate);
+      startDate = new Date(currentDate);
       startDate.setDate(currentDate.getDate() - 30);
     }
 
     const dateArray = [];
-    let currentDatePointer = createDateInTimezone(timezone, startDate);
+
+    let currentDatePointer = new Date(startDate);
 
     while (!isSameDay(currentDatePointer, currentDate)) {
-      dateArray.push(createDateInTimezone(timezone, currentDatePointer));
+      dateArray.push(formatISO(currentDatePointer));
 
       currentDatePointer.setDate(currentDatePointer.getDate() + 1);
 
       if (isSameDay(currentDatePointer, currentDate))
-        dateArray.push(createDateInTimezone(timezone, currentDatePointer));
+        dateArray.push(formatISO(currentDatePointer));
     }
 
     const applicationTrends: { date: string; applications: number }[] = [];
@@ -503,26 +551,21 @@ const getAllApplications = async (
           },
         },
       },
-      {
-        $group: {
-          _id: {
-            month: { $month: "$createdAt" },
-            day: { $dayOfMonth: "$createdAt" },
-          },
-          count: { $sum: 1 },
-        },
-      },
     ]);
 
     dateArray.forEach((date) => {
-      const dateString = `${date.getMonth() + 1}/${date.getDate()}`;
-      applicationTrends.push({ date: dateString, applications: 0 });
+      applicationTrends.push({ date, applications: 0 });
     });
 
     applicationCounts.forEach((item) => {
-      const dateString = `${item._id.month}/${item._id.day}`;
-      const target = applicationTrends.find((item) => item.date === dateString);
-      if (target) target.applications = item.count;
+      const dateString = format(item.createdAt, "P");
+      const target = applicationTrends.find(
+        (item) => format(parseISO(item.date), "P") === dateString
+      );
+
+      if (target) {
+        target.applications += 1;
+      }
     });
 
     return res.json({
@@ -538,6 +581,107 @@ const getAllApplications = async (
   }
 };
 
+/**
+ * @desc    Get job application
+ * @route   GET /api/employers/jobs/:jobId/applications/:applicationId
+ * @access  PROTECTED - only for employers only
+ */
+const getJobApplication = async (
+  req: Request<JobApplicationIdParams>,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { applicationId } = req.params;
+    const { id } = req.user;
+
+    const jobApplication = await Application.findOne({ applicationId }).exec();
+
+    // Check if job application doesn't exist in the database
+    if (!jobApplication) {
+      return res.status(404).json({ message: JOB_APPLICATION_NOT_FOUND });
+    }
+
+    const user = await User.findOne({ _id: jobApplication.applicantId }).exec();
+
+    if (!user) {
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
+    }
+
+    res.status(200).json({
+      ...jobApplication.toObject(),
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userId: user.userId,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get all job applications
+ * @route   GET /api/employers/jobs/applications
+ * @access  PROTECTED - only for employers only
+ */
+const getAllApplications = async (
+  req: Request<JobApplicationIdParams>,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { id } = req.user;
+
+    const jobIds = (
+      await Job.find({ employerId: id }).select("-_id jobId")
+    ).map((job) => job.jobId);
+
+    const applications = await Application.aggregate([
+      {
+        $match: {
+          jobId: { $in: jobIds },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "applicantId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $addFields: {
+          user: {
+            $first: {
+              $map: {
+                input: "$user",
+                as: "userData",
+                in: {
+                  firstName: "$$userData.firstName",
+                  lastName: "$$userData.lastName",
+                  userId: "$$userData.userId",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+    ]);
+
+    res.status(200).json({ total: applications.length, applications });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getJobs,
   getJob,
@@ -547,5 +691,7 @@ export {
   updateJobApplicationStatus,
   deleteJobPost,
   getAllJobPostings,
+  getApplicationsOverview,
+  getJobApplication,
   getAllApplications,
 };
