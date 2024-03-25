@@ -2,6 +2,7 @@ import Job, { JobDocument } from "@/models/job.model";
 import { Request, Response, NextFunction } from "express";
 import User from "@/models/user.model";
 import {
+  ACCOUNT_DELETED,
   APPLICATION_CREATED,
   BAD_REQUEST,
   EMAIL_EXISTS,
@@ -12,12 +13,18 @@ import {
   JOB_POST_BOOKMARKED,
   JOB_UNBOOKMARKED,
   PASSWORD_UPDATED,
-  USER_DELETED,
-  USER_NOT_FOUND,
+  ACCOUNT_NOT_FOUND,
 } from "@/constants";
-import { DeleteUserBody, UpdatePasswordBody, UpdateUserBody } from "@/schema/user.schema";
+import {
+  DeleteUserBody,
+  UpdatePasswordBody,
+  UpdateUserBody,
+} from "@/schema/user.schema";
 import { JobIdParams } from "@/schema/job.schema";
-import { AppyJobPostBody, JobApplicationIdParams } from "@/schema/application.schema";
+import {
+  AppyJobPostBody,
+  JobApplicationIdParams,
+} from "@/schema/application.schema";
 import Application, { ApplicationDocument } from "@/models/application.model";
 import { FlattenMaps } from "mongoose";
 import { Types } from "mongoose";
@@ -38,7 +45,7 @@ const getUser = async (
     const user = await User.findOne({ email }).select("-password").lean();
 
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     res.json(user);
@@ -65,7 +72,7 @@ const updateUser = async (
     const user = await User.findById(id).lean();
 
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const currentEmail = user.email;
@@ -93,13 +100,17 @@ const updateUser = async (
 
     // Check if user doesn't exist in the database
     if (!updatedUser) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     if (updatedUser.role === "employer") {
       await Job.updateMany(
         { employerId: updatedUser._id },
-        { $set: { employerName: `${updatedUser.firstName} ${updatedUser.lastName[0]}.` } }
+        {
+          $set: {
+            employerName: `${updatedUser.firstName} ${updatedUser.lastName[0]}.`,
+          },
+        }
       );
     }
 
@@ -127,7 +138,7 @@ const deleteUser = async (
 
     // Check if user doesn't exist in the database
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const isPasswordMatch = await user.comparePassword(password);
@@ -142,7 +153,10 @@ const deleteUser = async (
       await Application.deleteMany({ applicantId: user._id });
 
       // Delete user's ID from associated job posts
-      await Job.updateMany({ applications: user._id }, { $pull: { applications: user._id } });
+      await Job.updateMany(
+        { applications: user._id },
+        { $pull: { applications: user._id } }
+      );
     }
 
     if (user.role === "employer") {
@@ -181,7 +195,7 @@ const deleteUser = async (
       secure: true,
     });
 
-    return res.status(204).end();
+    return res.status(200).json({ message: ACCOUNT_DELETED });
   } catch (error) {
     next(error);
   }
@@ -205,7 +219,7 @@ const updatePassword = async (
 
     // Check if user doesn't exist in the database
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const isPasswordMatch = await user.comparePassword(password);
@@ -252,7 +266,7 @@ const applyJobPost = async (
 
     // Check if user doesn't exist in the database
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const jobPost = await Job.findOne({ jobId }).exec();
@@ -313,14 +327,18 @@ const getAllJobApplications = async (
 
     // Check if user doesn't exist in the database
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const userApplications = await Application.find({ applicantId: user._id })
       .sort({ createdAt: -1 })
       .lean();
-    const jobApplicationIds = userApplications.map((application) => application.jobId);
-    const jobApplications = await Job.find({ jobId: { $in: jobApplicationIds } }).lean();
+    const jobApplicationIds = userApplications.map(
+      (application) => application.jobId
+    );
+    const jobApplications = await Job.find({
+      jobId: { $in: jobApplicationIds },
+    }).lean();
 
     const jobMap: Record<
       string,
@@ -333,15 +351,19 @@ const getAllJobApplications = async (
     });
 
     const modifiedJobApplications = userApplications
-      .map((application) => ({ ...application, job: jobMap[application.jobId] }))
+      .map((application) => ({
+        ...application,
+        job: jobMap[application.jobId],
+      }))
       .filter((job) => !!job);
 
     if (jobApplications.length) {
-      return res
-        .status(200)
-        .json({ total: modifiedJobApplications.length, jobApplications: modifiedJobApplications });
+      return res.status(200).json({
+        total: modifiedJobApplications.length,
+        applications: modifiedJobApplications,
+      });
     } else {
-      res.status(200).json({ total: jobApplications.length, jobApplications: [] });
+      res.status(200).json({ total: jobApplications.length, applications: [] });
     }
   } catch (error) {
     next(error);
@@ -366,7 +388,7 @@ const deleteJobApplicationById = async (
 
     // Check if user doesn't exist in the database
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const jobApplication = await Application.findOne({
@@ -417,7 +439,7 @@ const bookmarkJobPost = async (
 
     // Check if user doesn't exist in the database
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
     const jobPost = await Job.findOne({ jobId }).lean();
@@ -428,7 +450,9 @@ const bookmarkJobPost = async (
     }
 
     // Check if job post is already bookmarked
-    const isCurrentlyBookmarked = user.bookmark.find((jobId) => jobId === jobPost.jobId);
+    const isCurrentlyBookmarked = user.bookmark.find(
+      (jobId) => jobId === jobPost.jobId
+    );
 
     // Check if _id is currently bookmarked
     if (isCurrentlyBookmarked) {
@@ -467,10 +491,12 @@ const getBookmarkedJobs = async (
 
     // Check if user doesn't exist in the database
     if (!user) {
-      return res.status(404).json({ message: USER_NOT_FOUND });
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
     }
 
-    const bookmarkedJobs = await Job.find({ jobId: { $in: user.bookmark } }).lean();
+    const bookmarkedJobs = await Job.find({
+      jobId: { $in: user.bookmark },
+    }).lean();
 
     // Create a map of jobId to the corresponding job document
     const jobMap: Record<
@@ -489,7 +515,10 @@ const getBookmarkedJobs = async (
       .filter((job) => !!job)
       .reverse();
 
-    res.json({ total: bookmarkedJobs.length, bookmarkedJobs: bookmarkedJobsSorted });
+    res.json({
+      total: bookmarkedJobs.length,
+      jobs: bookmarkedJobsSorted,
+    });
   } catch (error) {
     next(error);
   }
