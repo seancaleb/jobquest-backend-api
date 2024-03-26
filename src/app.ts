@@ -37,6 +37,7 @@ app.use(
       "http://localhost:5173",
       "http://localhost:4173",
       "https://sn-jobs-react-app.vercel.app",
+      "https://snjobs.vercel.app",
     ],
     credentials: true,
   })
@@ -67,7 +68,11 @@ app.use(errorHandler);
  * Initialize express application
  */
 app.listen(PORT, async () => {
-  logger.info(`Application running in ${config.util.getEnv("NODE_CONFIG_ENV").toUpperCase()}`);
+  logger.info(
+    `Application running in ${config.util
+      .getEnv("NODE_CONFIG_ENV")
+      .toUpperCase()}`
+  );
   await connect();
   logger.info(`Application is listening at port:${PORT}`);
 });
