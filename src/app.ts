@@ -19,6 +19,8 @@ import jobsRoute from "@/routes/jobs.route";
 import adminRoute from "@/routes/admin.route";
 import compression from "compression";
 import helmet from "helmet";
+import { createRouteHandler } from "uploadthing/express";
+import { fileRouter } from "./upload";
 
 /**
  * Declarations
@@ -27,24 +29,31 @@ const app = express();
 const PORT = config.get<number>("PORT");
 
 /**
- * Middleware entrypoint
+ * Middlewares
  */
-app.use(loggerMiddleware);
-app.use(express.json());
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "http://localhost:4173",
-      "https://sn-jobs-react-app.vercel.app",
       "https://snjobs.vercel.app",
     ],
     credentials: true,
   })
 );
+app.use(loggerMiddleware);
 app.use(cookieParser());
 app.use(compression());
 app.use(helmet());
+
+app.use(
+  "/api/uploadthing",
+  createRouteHandler({
+    router: fileRouter,
+  })
+);
+
+app.use(express.json());
 
 /**
  * All Routes
