@@ -253,6 +253,7 @@ const getAllJobApplications = async (
                   firstName: "$$userData.firstName",
                   lastName: "$$userData.lastName",
                   userId: "$$userData.userId",
+                  avatar: "$$userData.avatar",
                 },
               },
             },
@@ -456,6 +457,7 @@ const getApplicationsOverview = async (
                   firstName: "$$userData.firstName",
                   lastName: "$$userData.lastName",
                   userId: "$$userData.userId",
+                  avatar: "$$userData.avatar",
                 },
               },
             },
@@ -614,6 +616,7 @@ const getJobApplication = async (
         firstName: user.firstName,
         lastName: user.lastName,
         userId: user.userId,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
@@ -663,6 +666,7 @@ const getAllApplications = async (
                   firstName: "$$userData.firstName",
                   lastName: "$$userData.lastName",
                   userId: "$$userData.userId",
+                  avatar: "$$userData.avatar",
                 },
               },
             },
