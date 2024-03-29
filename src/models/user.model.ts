@@ -9,6 +9,7 @@ export interface UserDocument extends UserType, Document {
   applications: string[];
   createdAt: Date;
   updatedAt: Date;
+  avatar: string;
   comparePassword(candidatePassword: string): Promise<Error | boolean>;
 }
 
@@ -44,6 +45,10 @@ const userSchema = new Schema<UserDocument>(
       enum: ["user", "employer", "admin"],
       default: "user",
     },
+    avatar: {
+      type: String,
+      default: null,
+    },
     bookmark: [{ type: String, ref: "Job" }],
     applications: [{ type: String, ref: "Job" }],
   },
@@ -74,18 +79,21 @@ userSchema.pre<UserDocument>("save", async function (next) {
   return next();
 });
 
-userSchema.pre<Query<any, UserDocument>>("findOneAndUpdate", async function (next) {
-  const update = this.getUpdate() as { password: string };
+userSchema.pre<Query<any, UserDocument>>(
+  "findOneAndUpdate",
+  async function (next) {
+    const update = this.getUpdate() as { password: string };
 
-  if (update.password) {
-    const salt = await bcrypt.genSalt(config.get<number>("saltWorkFactor"));
-    const hash = bcrypt.hashSync(update.password, salt);
+    if (update.password) {
+      const salt = await bcrypt.genSalt(config.get<number>("saltWorkFactor"));
+      const hash = bcrypt.hashSync(update.password, salt);
 
-    this.set("password", hash);
+      this.set("password", hash);
+      next();
+    }
     next();
   }
-  next();
-});
+);
 
 userSchema.methods.comparePassword = async function (
   this: UserDocument,
