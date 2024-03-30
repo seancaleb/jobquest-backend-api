@@ -19,6 +19,7 @@ import {
   DeleteUserBody,
   UpdatePasswordBody,
   UpdateUserBody,
+  UserIdParams,
 } from "@/schema/user.schema";
 import { JobIdParams } from "@/schema/job.schema";
 import {
@@ -524,6 +525,38 @@ const getBookmarkedJobs = async (
   }
 };
 
+/**
+ * @desc    Get user details
+ * @route   GET /api/users/:userId
+ * @access  PRIVATE
+ */
+const getUserDetails = async (
+  req: Request<UserIdParams>,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findOne({ userId }).select("-password").lean();
+
+    if (!user) {
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
+    }
+
+    const modifiedUser = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      avatar: user.avatar,
+    };
+
+    res.json(modifiedUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getUser,
   updateUser,
@@ -534,4 +567,5 @@ export {
   deleteJobApplicationById,
   bookmarkJobPost,
   getBookmarkedJobs,
+  getUserDetails,
 };
