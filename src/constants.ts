@@ -71,6 +71,8 @@ export const JOB_APPLICATION_STATUS_UPDATED =
   "Application Status Updated: The application status has been successfully updated.";
 export const ACCOUNT_DELETED =
   "Account Deleted: Account has been successfully deleted.";
+export const PROFILE_AVATAR_UPDATED =
+  "Profile Avatar Updated: Profile avatar has been updated.";
 
 /**
  * @status  204 - NO CONTENT

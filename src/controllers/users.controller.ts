@@ -14,6 +14,7 @@ import {
   JOB_UNBOOKMARKED,
   PASSWORD_UPDATED,
   ACCOUNT_NOT_FOUND,
+  PROFILE_AVATAR_UPDATED,
 } from "@/constants";
 import {
   DeleteUserBody,
@@ -29,6 +30,7 @@ import {
 import Application, { ApplicationDocument } from "@/models/application.model";
 import { FlattenMaps } from "mongoose";
 import { Types } from "mongoose";
+import cloudinary from "@/utils/cloudinary";
 
 /**
  * @desc    Get current user
@@ -557,6 +559,57 @@ const getUserDetails = async (
   }
 };
 
+/**
+ * @desc    Upload profile avatar
+ * @route   POST /api/users/profile/upload
+ * @access  PRIVATE
+ */
+const uploadAvatar = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const { id } = req.user;
+
+    const user = await User.findById(id).lean();
+
+    if (!user) {
+      return res.status(404).json({ message: ACCOUNT_NOT_FOUND });
+    }
+
+    if (req.file) {
+      cloudinary.uploader.upload(req.file.path, async (err, result) => {
+        if (err) {
+          console.log(err);
+
+          return res.status(500).json({
+            message: "Something went wrong when uploading the image.",
+          });
+        }
+
+        if (result) {
+          const updatedUser = await User.findOneAndUpdate(
+            { _id: user._id },
+            {
+              avatar: result.url,
+            },
+            { runValidators: true, new: true }
+          );
+
+          return res.json({
+            message: PROFILE_AVATAR_UPDATED,
+            user: updatedUser,
+            result,
+          });
+        }
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getUser,
   updateUser,
@@ -568,4 +621,5 @@ export {
   bookmarkJobPost,
   getBookmarkedJobs,
   getUserDetails,
+  uploadAvatar,
 };

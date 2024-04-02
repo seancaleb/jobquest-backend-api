@@ -9,6 +9,7 @@ import {
   getUserDetails,
   updatePassword,
   updateUser,
+  uploadAvatar,
 } from "@/controllers/users.controller";
 import authorizeUser from "@/middleware/authorizeUser";
 import validateResource from "@/middleware/validateResource";
@@ -25,6 +26,7 @@ import {
   updateUserSchema,
 } from "@/schema/user.schema";
 import express from "express";
+import upload from "@/middleware/multer";
 
 const router = express.Router();
 
@@ -39,6 +41,7 @@ router.use(verifyJwt);
 router.get("/profile", getUser);
 router.patch("/profile", validateResource(updateUserSchema), updateUser);
 router.delete("/profile", validateResource(deleteUserSchema), deleteUser);
+router.post("/profile/upload", upload.single("avatar"), uploadAvatar);
 router.patch(
   "/update-password",
   validateResource(updatePasswordSchema),
